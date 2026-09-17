@@ -18,7 +18,7 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="font-display font-black text-4xl md:text-6xl leading-tight text-white uppercase"
           >
-            <span className="text-[#00FF88] text-glow">CODEX</span><br />
+            <span className="text-[#00FF88] text-glow">CODEOPS</span><br />
             Cyber Operations<br />Command Centre
           </motion.h1>
           <motion.p
