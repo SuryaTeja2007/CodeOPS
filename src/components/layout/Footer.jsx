@@ -13,7 +13,7 @@ export default function Footer() {
 
         <div className="grid md:grid-cols-3 gap-8 text-sm">
           <div>
-            <div className="font-display text-[#00FF88] tracking-widest mb-3">CODEX</div>
+            <div className="font-display text-[#00FF88] tracking-widest mb-3">CODEOPS</div>
             <p className="text-white/50 text-xs leading-relaxed">
               Cyber Operations Command Centre — A Vardhaman coding club for builders,
               competitors, and operators.
@@ -43,7 +43,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-2 text-[11px] text-white/30 font-mono">
-          <div>© {new Date().getFullYear()} CODEX. All transmissions logged.</div>
+          <div>© {new Date().getFullYear()} CODEOPS. All transmissions logged.</div>
           <div>Built by Sai Kalyan V</div>
         </div>
       </div>

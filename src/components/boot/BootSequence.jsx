@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const MESSAGES = [
-  "Initializing CODEX...",
+  "Initializing CODEOPS...",
   "Loading Security Protocols...",
   "Decrypting Database...",
   "Connecting to Mission Control...",
@@ -44,7 +44,7 @@ export default function BootSequence({ onDone }) {
           {!granted ? (
             <div className="relative z-10 w-full max-w-md font-mono text-sm">
               <div className="text-[#00FF88] font-display tracking-[0.3em] text-center mb-8 text-lg">
-                CODEX
+                CODEOPS
               </div>
               <div className="space-y-2 min-h-[160px]">
                 {MESSAGES.slice(0, step).map((m, i) => (

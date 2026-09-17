@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 const COMMANDS = [
-  { cmd: "whoami", out: "agent@CODEX : clearance pending" },
+  { cmd: "whoami", out: "agent@CODEOPS : clearance pending" },
   { cmd: "events", out: "3 active missions found. use `register <id>` to join." },
   { cmd: "register", out: "opening secure registration channel..." },
   { cmd: "crew", out: "128 active agents across 9 divisions." },
@@ -58,7 +58,7 @@ export default function TerminalTyper() {
         <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#FF3B3B" }} />
         <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#FFD400" }} />
         <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#00FF88" }} />
-        <span className="ml-2 text-white/40">agent@CODEX:~</span>
+        <span className="ml-2 text-white/40">agent@CODEOPS:~</span>
       </div>
       <div className="space-y-1.5 min-h-[140px]">
         {lines.map((l, i) => (
