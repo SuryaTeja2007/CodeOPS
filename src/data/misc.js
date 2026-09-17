@@ -35,7 +35,7 @@ export const posters = [
 ];
 
 // export const registerCards = [
-//   { id: 1, title: "Club Membership", desc: "Join CODEX. Full access to workshops, mission files, and the agent database.", url: "https://forms.gle/membership" },
+//   { id: 1, title: "Club Membership", desc: "Join CODEOPS. Full access to workshops, mission files, and the agent database.", url: "https://forms.gle/membership" },
 //   { id: 2, title: "Hackathons", desc: "Register for upcoming hackathons as a solo agent or full squad.", url: "https://forms.gle/hackathons" },
 //   { id: 3, title: "Coding Competitions", desc: "Enter CP Dojo rounds and inter-college competitive programming meets.", url: "https://forms.gle/competitions" },
 //   { id: 4, title: "Workshops", desc: "Reserve a seat in hands-on technical workshops run by division leads.", url: "https://forms.gle/workshops" },
