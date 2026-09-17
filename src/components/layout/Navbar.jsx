@@ -23,7 +23,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between">
         <div className="flex items-center gap-2 font-display font-bold tracking-widest text-[#00FF88] text-glow">
           <Terminal size={20} />
-          CODEX
+          CODEOPS
         </div>
 
         <div className="hidden lg:flex items-center gap-1 font-mono text-xs uppercase tracking-wider">
