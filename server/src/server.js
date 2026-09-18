@@ -9,6 +9,7 @@ import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/auth.js";
 import contentRoutes from "./routes/content.js";
 import adminRoutes from "./routes/admin.js";
+import { seedDefaultContent } from "./scripts/seedContent.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,6 +33,7 @@ app.use((err, _req, res, _next) => {
 });
 
 connectDB()
+  .then(() => seedDefaultContent())
   .then(() => app.listen(PORT, () => console.log(`CodeOPS API running on http://localhost:${PORT}`)))
   .catch((error) => {
     console.error("Database connection failed:", error.message);
