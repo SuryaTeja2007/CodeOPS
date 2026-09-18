@@ -1,12 +1,12 @@
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 async function request(path, options = {}) {
+  const isFormData = options.body instanceof FormData;
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
+    headers: isFormData
+      ? { ...(options.headers || {}) }
+      : { "Content-Type": "application/json", ...(options.headers || {}) },
     ...options,
   });
 
@@ -31,9 +31,23 @@ export const api = {
     }),
   removeAdmin: (id) => request(`/admin/${id}`, { method: "DELETE" }),
   events: () => request("/event"),
-  addEvent: (event) =>
-    request("/event", { method: "POST", body: JSON.stringify(event) }),
-  updateEvent: (id, event) =>
-    request(`/event/${id}`, { method: "PUT", body: JSON.stringify(event) }),
+  addEvent: (event) => {
+    const form = new FormData();
+    Object.entries(event).forEach(([key, value]) => {
+      if (key === "posterFile") {
+        if (value) form.append("poster", value);
+      } else if (value !== "") form.append(key, value);
+    });
+    return request("/event", { method: "POST", body: form });
+  },
+  updateEvent: (id, event) => {
+    const form = new FormData();
+    Object.entries(event).forEach(([key, value]) => {
+      if (key === "posterFile") {
+        if (value) form.append("poster", value);
+      } else if (value !== "") form.append(key, value);
+    });
+    return request(`/event/${id}`, { method: "PUT", body: form });
+  },
   removeEvent: (id) => request(`/event/${id}`, { method: "DELETE" }),
 };
