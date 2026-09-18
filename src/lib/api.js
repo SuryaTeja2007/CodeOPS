@@ -1,5 +1,5 @@
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-export const ASSET_BASE = API_BASE.replace(/\\/api\\/?$/, "");
+export const ASSET_BASE = API_BASE.replace(/\/api\/?$/, "");
 export const resolveAssetUrl = (url) => url && url.startsWith("/") ? `${ASSET_BASE}${url}` : url;
 
 async function request(path, options = {}) {
