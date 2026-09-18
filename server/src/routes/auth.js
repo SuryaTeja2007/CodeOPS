@@ -45,7 +45,7 @@ router.post("/logout", (req, res) => {
 router.get("/me", requireAuth, async (req, res) => {
   const admin = await Admin.findById(req.admin.id).select("username role createdAt");
   if (!admin) return res.status(401).json({ message: "Admin not found" });
-  res.json({ admin });
+  res.json({ admin: { id: admin._id, username: admin.username, role: admin.role, createdAt: admin.createdAt } });
 });
 
 export default router;
