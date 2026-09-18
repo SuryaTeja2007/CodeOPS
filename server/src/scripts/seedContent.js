@@ -51,7 +51,7 @@ const defaultEvent = {
   venue:"1009 Seminar Hall", deadline:"2026-09-11T23:59:00", status:"OPEN", registerUrl:"https://forms.gle/example1"
 };
 
-async function seed() {
+export async function seedDefaultContent() {
   await mongoose.connect(process.env.MONGODB_URI);
   const marker = await SiteSettings.findOne({ key:"default-content" });
   if (marker?.initialized) {
@@ -76,4 +76,8 @@ async function seed() {
   console.log("Default CodeOPS content initialized.");
 }
 
-seed().catch((error)=>{ console.error(error); process.exitCode=1; }).finally(async()=>{ await mongoose.disconnect(); });
+if (process.argv[1]?.endsWith("seedContent.js")) {
+  seedDefaultContent()
+    .catch((error)=>{ console.error(error); process.exitCode=1; })
+    .finally(async()=>{ await mongoose.disconnect(); });
+}
