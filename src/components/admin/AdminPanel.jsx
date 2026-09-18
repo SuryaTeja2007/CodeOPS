@@ -24,6 +24,7 @@ export default function AdminPanel() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [posterFile, setPosterFile] = useState(null);
 
   async function load() {
     try {
@@ -107,7 +108,7 @@ export default function AdminPanel() {
   async function handleEvent(e) {
     e.preventDefault();
     try {
-      const payload = { ...event };
+      const payload = { ...event, posterFile };
       let saved;
       if (editingId) {
         saved = await api.updateEvent(editingId, payload);
@@ -117,6 +118,7 @@ export default function AdminPanel() {
         setEvents((items) => [saved, ...items]);
       }
       setEvent(emptyEvent);
+      setPosterFile(null);
       setEditingId(null);
       setMessage(editingId ? "Event updated." : "Event created.");
       setError("");
@@ -163,7 +165,6 @@ export default function AdminPanel() {
       <div className="max-w-7xl mx-auto">
         <header className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div>
-            <div className="text-[#00FF88] text-xs tracking-[0.3em]">CONTROL // AUTHORIZED</div>
             <h1 className="font-display text-2xl md:text-3xl mt-2">ADMIN PANEL</h1>
             <p className="text-white/40 text-xs mt-2">{admin.username} · {admin.role}</p>
           </div>
