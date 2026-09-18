@@ -8,6 +8,7 @@ import Poster from "../models/Poster.js";
 import Contact from "../models/Contact.js";
 import Stats from "../models/Stats.js";
 import SiteSettings from "../models/SiteSettings.js";
+import Media from "../models/Media.js";
 
 dotenv.config();
 
@@ -63,7 +64,7 @@ export async function seedDefaultContent() {
   for (const item of leaderboard) await Leaderboard.findOneAndUpdate({name:item.name,nickname:item.nickname},item,{upsert:true,new:true,setDefaultsOnInsert:true});
   for (const item of agents) await Agent.findOneAndUpdate({id:item.id},item,{upsert:true,new:true,setDefaultsOnInsert:true});
   for (const [title,category,img] of gallery) await Gallery.findOneAndUpdate({title,category},{title,category,img},{upsert:true,new:true,setDefaultsOnInsert:true});
-  for (const item of posters) await Poster.findOneAndUpdate({title:item.title},item,{upsert:true,new:true,setDefaultsOnInsert:true});
+  for (const item of posters) {\n    await Poster.findOneAndUpdate({title:item.title},item,{upsert:true,new:true,setDefaultsOnInsert:true});\n    await Media.findOneAndUpdate({url:item.img},{title:item.title,url:item.img,kind:"poster"},{upsert:true,new:true,setDefaultsOnInsert:true});\n  }\n  await Media.findOneAndUpdate({url:defaultEvent.poster},{title:"Inauguration Event",url:defaultEvent.poster,kind:"poster"},{upsert:true,new:true,setDefaultsOnInsert:true});
   await Contact.findOneAndUpdate({}, {
     facultyCoordinator:"Sai Kalyan, Rupa Santoshi, Sashivanth — Dept. of CSD",
     hod:"Shanthi Makka — Dept. of CSD",
