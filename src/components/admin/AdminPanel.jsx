@@ -82,7 +82,7 @@ export default function AdminPanel(){
 
   async function removeEvent(id){if(!window.confirm("Delete this event?"))return;try{await api.removeEvent(id);setEvents(items=>items.filter(x=>x._id!==id));setMessage("Event deleted.");}catch(e){fail(e);}}
 
-  async function saveContact(e){e.preventDefault();try{const saved=await api.contact.update(contact);setContact(saved);setMessage("Contact section updated.");setError("");}catch(e){fail(e);}}
+  async function saveContact(e){e.preventDefault();try{const saved=await api.contact.update(contact);setContact(Object.fromEntries(Object.keys(emptyContact).map(k=>[k,saved[k]||""])));setMessage("Contact section updated.");setError("");}catch(e){fail(e);}}
 
   async function addAdmin(e){e.preventDefault();try{const created=await api.addAdmin(newAdmin.username,newAdmin.password);setAdmins(items=>[...items,created]);setNewAdmin({username:"",password:""});setMessage("Admin account created.");setError("");}catch(e){fail(e);}}
   async function removeAdmin(id){if(!window.confirm("Remove this admin account?"))return;try{await api.removeAdmin(id);setAdmins(items=>items.filter(x=>x._id!==id));}catch(e){fail(e);}}
