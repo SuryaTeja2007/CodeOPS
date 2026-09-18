@@ -77,7 +77,7 @@ export async function seedDefaultContent() {
 }
 
 if (process.argv[1]?.endsWith("seedContent.js")) {
-  seedDefaultContent()
+  mongoose.connect(process.env.MONGODB_URI).then(() => seedDefaultContent())
     .catch((error)=>{ console.error(error); process.exitCode=1; })
     .finally(async()=>{ await mongoose.disconnect(); });
 }
