@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { LogIn, LogOut, Plus, Shield, Trash2, Pencil, Upload } from "lucide-react";
 import { api, resolveAssetUrl } from "../../lib/api";
 
-const emptyEvent={title:"",description:"",venue:"",deadline:"",status:"OPEN",poster:"",registerUrl:""};
+const emptyEvent={code:"",title:"",description:"",venue:"",deadline:"",status:"OPEN",poster:"",registerUrl:""};
 const emptyLeaderboard={name:"",nickname:"",threatClass:"",division:"",xp:0,missions:0};
 const emptyAgent={id:"",name:"",nickname:"",division:"",status:"Online",threatClass:"",clearance:0,xp:0,missions:0,language:"",project:"",github:"",linkedin:"",portfolio:"",joined:"",photo:""};
 const emptyGallery={title:"",category:"Events",img:""};
