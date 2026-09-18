@@ -52,7 +52,7 @@ export default function AdminPanel(){
       if(resource==="agents")setAgents(items=>editing?.resource===resource?items.map(x=>x._id===editing.id?saved:x):[saved,...items]);
       if(resource==="gallery")setGallery(items=>editing?.resource===resource?items.map(x=>x._id===editing.id?saved:x):[saved,...items]);
       if(resource==="posters")setPosters(items=>editing?.resource===resource?items.map(x=>x._id===editing.id?saved:x):[saved,...items]);
-      reset(); setMessage(editing?.resource===resource?"Updated successfully.":"Created successfully.");setError("");
+      setEditing(null); reset(); setMessage(editing?.resource===resource?"Updated successfully.":"Created successfully.");setError("");
     }catch(e){fail(e);}
   }
 
