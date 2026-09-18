@@ -12,13 +12,16 @@ import AgentDatabase from "./components/sections/AgentDatabase";
 import Leaderboard from "./components/sections/Leaderboard";
 import Gallery from "./components/sections/Gallery";
 import Posters from "./components/sections/Posters";
-// import Register from "./components/sections/Register";
 import Contact from "./components/sections/Contact";
+import AdminPanel from "./components/admin/AdminPanel";
 
 export default function App() {
   const [booted, setBooted] = useState(false);
+  const isAdminRoute = window.location.pathname === "/admin";
 
- return (
+  if (isAdminRoute) return <AdminPanel />;
+
+  return (
     <>
       {!booted && <BootSequence onDone={() => setBooted(true)} />}
       <div className="fixed inset-0 opacity-25 pointer-events-none z-0">
@@ -30,7 +33,6 @@ export default function App() {
         <StatsDashboard />
         <MissionControl />
         <Events />
-        {/* <Register /> */}
         <AlertConsole />
         <AgentDatabase />
         <Leaderboard />
