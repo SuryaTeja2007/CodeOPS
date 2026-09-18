@@ -4,8 +4,29 @@ import Alert from "../models/Alert.js";
 import Leaderboard from "../models/Leaderboard.js";
 import Stats from "../models/Stats.js";
 import { requireAuth } from "../middleware/auth.js";
+import multer from "multer";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const router = Router();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: path.join(__dirname, "../uploads"),
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      cb(null, `event-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) cb(null, true);
+    else cb(new Error("Only image files are allowed"));
+  },
+});
+
 
 function crud(Model, sort = { createdAt: -1 }) {
   router.get(`/${Model.modelName.toLowerCase()}`, async (_req, res) => {
