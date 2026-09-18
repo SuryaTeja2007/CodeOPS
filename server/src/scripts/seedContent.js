@@ -23,11 +23,11 @@ const agents = [
 ];
 
 const leaderboard = [
-  ["Devraj Sen","ZeroDay","Cyber Security",24800,81],["Ishita Bose","SilentStack","Core Committee",19870,55],
-  ["Rehan Iqbal","NullByte","Cyber Security",18420,47],["Ananya Rao","ShadowRoot","Competitive Programming",15310,63],
-  ["Yashwanth Reddy","QuantumHex","App Development",13040,38],["Kiran Vellanki","GhostPacket","Web Development",9210,22],
-  ["Sneha Patil","CipherFox","Artificial Intelligence",4120,9],["Meher Chawla","Echo404","Design",980,3]
-].map(([name,nickname,division,xp,missions])=>({name,nickname,division,xp,missions}));
+  [["Devraj Sen","ZeroDay","Cyber Security","Ω-Class Command Elite",24800,81],["Ishita Bose","SilentStack","Core Committee","S-Class Cyber Phantom",19870,55],
+  ["Rehan Iqbal","NullByte","Cyber Security","S-Class Cyber Phantom",18420,47],["Ananya Rao","ShadowRoot","Competitive Programming","A-Class Elite Agent",15310,63],
+  ["Yashwanth Reddy","QuantumHex","App Development","A-Class Elite Agent",13040,38],["Kiran Vellanki","GhostPacket","Web Development","B-Class Specialist",9210,22],
+  ["Sneha Patil","CipherFox","Artificial Intelligence","C-Class Operator",4120,9],["Meher Chawla","Echo404","Design","D-Class Recruit",980,3]
+].map(([name,nickname,division,threatClass,xp,missions])=>({name,nickname,division,threatClass,xp,missions}));
 
 const gallery = [
   ["Events 01","Events","https://placehold.co/500x350/050505/00FF88?text=Events+01"],
