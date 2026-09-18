@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/auth.js";
 import contentRoutes from "./routes/content.js";
+import adminRoutes from "./routes/admin.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,6 +18,7 @@ app.use(cookieParser());
 
 app.get("/api/health", (_req, res) => res.json({ ok: true, service: "CodeOPS API" }));
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api", contentRoutes);
 
 app.use((err, _req, res, _next) => {
