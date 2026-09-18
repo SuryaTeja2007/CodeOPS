@@ -38,7 +38,7 @@ const upload = multer({
 const publicUrl = (file) => `/uploads/${file.filename}`;
 
 async function nextEventCode() {
-  const events = await Event.find({ code: /^CX-\\d+$/ }).select("code").lean();
+  const events = await Event.find({ code: /^CX-\d+$/ }).select("code").lean();
   const used = new Set(events.map((item) => Number(item.code.slice(3))));
   let n = 1;
   while (used.has(n)) n += 1;
