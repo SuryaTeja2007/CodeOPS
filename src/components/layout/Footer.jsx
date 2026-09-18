@@ -32,6 +32,11 @@ export default function Footer() {
           </div>
 
           <div>
+            <div className="text-white/70 uppercase text-xs tracking-widest mb-3">Admin Access</div>
+            <a href="/admin" className="text-xs text-white/50 hover:text-[#00FF88] transition">Open Admin Login →</a>
+          </div>
+
+          <div>
             <div className="text-white/70 uppercase text-xs tracking-widest mb-3">Comms</div>
             <div className="flex gap-4 text-white/50">
               <a href="#" target="_blank" aria-label="FaceBook" className="hover:text-[#00FF88]"><FaFacebookF size={18} /></a>
