@@ -3,7 +3,7 @@ import { LogIn, LogOut, Plus, Shield, Trash2 } from "lucide-react";
 import { api } from "../../lib/api";
 
 const emptyEvent = {
-  id: "",
+  code: "",
   title: "",
   description: "",
   venue: "",
@@ -34,7 +34,7 @@ export default function AdminPanel() {
         setAdmins(adminList);
         setEvents(eventList);
       } else {
-        const { events: eventList } = await api.events();
+        const eventList = await api.events();
         setEvents(eventList);
       }
     } catch {
@@ -93,7 +93,7 @@ export default function AdminPanel() {
   function editEvent(item) {
     setEditingId(item._id);
     setEvent({
-      id: item.id || "",
+      code: item.code || "",
       title: item.title || "",
       description: item.description || "",
       venue: item.venue || "",
@@ -200,7 +200,7 @@ export default function AdminPanel() {
             </div>
             <form onSubmit={handleEvent} className="grid md:grid-cols-2 gap-3">
               {Object.entries(event).map(([key, value]) => (
-                <input key={key} type={key === "deadline" ? "datetime-local" : "text"} className={inputClass} placeholder={key.toUpperCase()} value={value} onChange={(e) => setEvent({ ...event, [key]: e.target.value })} required={["id","title","description","venue","deadline","registerUrl"].includes(key)} />
+                <input key={key} type={key === "deadline" ? "datetime-local" : "text"} className={inputClass} placeholder={key.toUpperCase()} value={value} onChange={(e) => setEvent({ ...event, [key]: e.target.value })} required={["code","title","description","venue","deadline","registerUrl"].includes(key)} />
               ))}
               <button className={buttonClass + " md:col-span-2"}><Plus size={14} /> {editingId ? "Save event" : "Create event"}</button>
             </form>
@@ -213,7 +213,7 @@ export default function AdminPanel() {
             {events.map((item) => (
               <div key={item._id} className="flex flex-wrap items-center justify-between gap-3 border border-white/10 rounded px-3 py-3 text-xs">
                 <div>
-                  <span className="text-[#00D9FF] mr-3">{item.id}</span>
+                  <span className="text-[#00D9FF] mr-3">{item.code}</span>
                   <span>{item.title}</span>
                   <span className="text-white/30 ml-3">{item.status}</span>
                 </div>
