@@ -26,7 +26,7 @@ export default function AdminPanel(){
     try{
       const {admin:current}=await api.me(); setAdmin(current);
       const [e,l,a,g,p,c]=await Promise.all([api.events(),api.leaderboard.list(),api.agents.list(),api.gallery.list(),api.posters.list(),api.contact.get()]);
-      setEvents(e); setLeaderboard(l); setAgents(a); setGallery(g); setPosters(p); setContact({...emptyContact,...c});
+      setEvents(e); setLeaderboard(l); setAgents(a); setGallery(g); setPosters(p); setContact(Object.fromEntries(Object.keys(emptyContact).map(k=>[k,c[k]||""])));
       if(current.role==="superadmin") setAdmins(await api.admins());
       setMedia(await api.media.list());
     }catch{setAdmin(null);}finally{setLoading(false);}
@@ -63,11 +63,11 @@ export default function AdminPanel(){
 
   function edit(resource,item){
     setEditing({resource,id:item._id});
-    if(resource==="leaderboard")setLeader({...emptyLeaderboard,...item});
-    if(resource==="agents")setAgent({...emptyAgent,...item});
-    if(resource==="gallery")setGalleryItem({...emptyGallery,...item});
-    if(resource==="posters")setPoster({...emptyPoster,...item});
-    if(resource==="events")setEvent({...emptyEvent,...item,deadline:item.deadline?.slice(0,16)||""});
+    if(resource==="leaderboard")setLeader(Object.fromEntries(Object.keys(emptyLeaderboard).map(k=>[k,item[k]??emptyLeaderboard[k]])));
+    if(resource==="agents")setAgent(Object.fromEntries(Object.keys(emptyAgent).map(k=>[k,item[k]??emptyAgent[k]])));
+    if(resource==="gallery")setGalleryItem(Object.fromEntries(Object.keys(emptyGallery).map(k=>[k,item[k]??emptyGallery[k]])));
+    if(resource==="posters")setPoster(Object.fromEntries(Object.keys(emptyPoster).map(k=>[k,item[k]??emptyPoster[k]])));
+    if(resource==="events")setEvent(Object.fromEntries(Object.keys(emptyEvent).map(k=>[k,k==="deadline"?(item.deadline?.slice(0,16)||""):(item[k]??emptyEvent[k])] )));
   }
 
   async function saveEvent(e){
