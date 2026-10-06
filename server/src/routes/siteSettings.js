@@ -9,6 +9,7 @@ const defaults = {
   stats: true,
   missionControl: true,
   events: true,
+  register: true,
   notifications: true,
   agents: true,
   leaderboard: true,
