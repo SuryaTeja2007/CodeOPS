@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LogIn, LogOut, Plus, Shield, Trash2, Pencil, Upload } from "lucide-react";
+import { ArrowLeft, ExternalLink, LogIn, LogOut, Plus, Shield, Trash2, Pencil, Upload } from "lucide-react";
 import { api, resolveAssetUrl } from "../../lib/api";
 
 const emptyEvent = { code:"", title:"", description:"", venue:"", deadline:"", status:"OPEN", poster:"", registerUrl:"" };
@@ -237,7 +237,10 @@ export default function AdminPanel() {
           <input className={inputClass + " mb-4"} value={login.username} onChange={(e) => setLogin({ ...login, username:e.target.value })} />
           <label className="block text-xs text-white/50 mb-2">PASSWORD</label>
           <input type="password" className={inputClass + " mb-6"} value={login.password} onChange={(e) => setLogin({ ...login, password:e.target.value })} />
-          <button className={buttonClass} type="submit"><LogIn size={15} />Authenticate</button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button className={buttonClass} type="submit"><LogIn size={15} />Authenticate</button>
+            <a href="/" className={secondaryClass}><ArrowLeft size={14} />Back to website</a>
+          </div>
         </form>
       </main>
     );
@@ -246,7 +249,13 @@ export default function AdminPanel() {
   return (
     <main className="min-h-screen bg-[#050505] cyber-grid px-4 md:px-8 py-24 text-white">
       <div className="max-w-7xl mx-auto">
-        <header className="flex flex-wrap items-center justify-between gap-4 mb-6"><div><h1 className="font-display text-2xl md:text-3xl">ADMIN PANEL</h1><p className="text-white/40 text-xs mt-2">{admin.username} · {admin.role}</p></div><button onClick={logout} className={secondaryClass}><LogOut size={14} />Logout</button></header>
+        <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div><h1 className="font-display text-2xl md:text-3xl">ADMIN PANEL</h1><p className="text-white/40 text-xs mt-2">{admin.username} · {admin.role}</p></div>
+          <div className="flex flex-wrap gap-2">
+            <a href="/" className={secondaryClass}><ExternalLink size={14} />View website</a>
+            <button onClick={logout} className={secondaryClass}><LogOut size={14} />Logout</button>
+          </div>
+        </header>
         {error ? <div className="mb-4 border border-[#FF3B3B]/40 text-[#FF3B3B] p-3 text-xs">{error}</div> : null}
         {message ? <div className="mb-4 border border-[#00FF88]/30 text-[#00FF88] p-3 text-xs">{message}</div> : null}
         <div className="flex flex-wrap gap-2 mb-6">{TABS.map(([id,label]) => <button key={id} onClick={() => { setTab(id); clearForm(); }} className={"px-3 py-2 rounded border text-[10px] uppercase tracking-wider " + (tab === id ? "bg-[#00FF88] text-black border-[#00FF88]" : "border-white/15 text-white/60 hover:text-[#00FF88]")}>{label}</button>)}</div>
