@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BootSequence from "./components/boot/BootSequence";
 import MatrixRain from "./components/ui/MatrixRain";
 import Navbar from "./components/layout/Navbar";
