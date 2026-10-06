@@ -81,7 +81,7 @@ export default function App() {
           <Contact />
         </AdminManagedSection>
       </main>
-      <Footer sections={sections} />
+      <Footer sections={sections} admin={admin} />
     </>
   );
 }
