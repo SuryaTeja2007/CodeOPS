@@ -2,8 +2,8 @@ import { Link } from "react-scroll";
 import { FaFacebookF, FaLinkedinIn, FaInstagram, FaDiscord } from "react-icons/fa";
 import { navLinks } from "../../data/misc";
 
-export default function Footer({ sections }) {
-  const visibleLinks = navLinks.filter((link) => !sections || sections[link.section || link.to] !== false);
+export default function Footer({ sections, admin }) {
+  const visibleLinks = navLinks.filter((link) => admin || !sections || sections[link.section || link.to] !== false);
   return (
     <footer id="footer" className="border-t border-[#00FF88]/15 bg-[#030303] px-4 md:px-8 py-10">
       <div className="max-w-7xl mx-auto">
