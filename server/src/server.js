@@ -9,6 +9,7 @@ import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/auth.js";
 import contentRoutes from "./routes/content.js";
 import adminRoutes from "./routes/admin.js";
+import siteSettingsRoutes from "./routes/siteSettings.js";
 import { seedDefaultContent } from "./scripts/seedContent.js";
 
 const app = express();
@@ -25,6 +26,7 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.get("/api/health", (_req, res) => res.json({ ok: true, service: "CodeOPS API" }));
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/site-settings", siteSettingsRoutes);
 app.use("/api", contentRoutes);
 
 app.use((err, _req, res, _next) => {
