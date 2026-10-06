@@ -3,10 +3,11 @@ import { Link } from "react-scroll";
 import { Menu, X, Terminal } from "lucide-react";
 import { navLinks } from "../../data/misc";
 
-export default function Navbar() {
+export default function Navbar({ sections }) {
   const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState("home");
   const [open, setOpen] = useState(false);
+  const visibleLinks = navLinks.filter((link) => !sections || sections[link.section || link.to] !== false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -27,7 +28,7 @@ export default function Navbar() {
         </div>
 
         <div className="hidden lg:flex items-center gap-1 font-mono text-xs uppercase tracking-wider">
-          {navLinks.map((link) => (
+          {visibleLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
