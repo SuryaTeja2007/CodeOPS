@@ -48,7 +48,7 @@ export default function App() {
       <div className="fixed inset-0 opacity-25 pointer-events-none z-0">
         <MatrixRain />
       </div>
-      <Navbar sections={sections} />
+      <Navbar sections={sections} admin={admin} />
       <main>
         <AdminManagedSection sectionKey="home" label="Home" visible={sections.home} admin={admin} sections={sections} setSections={setSections}>
           <Home />
@@ -91,7 +91,7 @@ function AdminManagedSection({ sectionKey, label, visible, admin, sections, setS
 
   const isHiddenForPublic = !visible;
   return (
-    <div className={`relative ${isHiddenForPublic ? "grayscale opacity-40" : ""}`}>
+    <div className="relative">
       {admin ? (
         <>
           <AdminSectionControls
@@ -108,7 +108,9 @@ function AdminManagedSection({ sectionKey, label, visible, admin, sections, setS
           ) : null}
         </>
       ) : null}
-      {children}
+      <div className={isHiddenForPublic ? "grayscale opacity-40" : ""}>
+        {children}
+      </div>
     </div>
   );
 }
