@@ -56,7 +56,7 @@ export const navLinks = [
   { to: "home", label: "Home" },
   { to: "mission-control", label: "Mission Control", section: "missionControl" },
   { to: "events", label: "Events" },
-  // { to: "register", label: "Register" },
+  { to: "register", label: "Register" },
   { to: "notifications", label: "Notifications" },
   { to: "agents", label: "Agent DB" },
   { to: "leaderboard", label: "Leaderboard" },
