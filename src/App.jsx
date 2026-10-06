@@ -15,7 +15,6 @@ import Posters from "./components/sections/Posters";
 import Contact from "./components/sections/Contact";
 import AdminPanel from "./components/admin/AdminPanel";
 import { api } from "./lib/api";
-import AdminSectionControls from "./components/admin/AdminSectionControls";
 
 export default function App() {
   const audioRef = useRef(null);
@@ -60,7 +59,7 @@ export default function App() {
       <div className="fixed inset-0 opacity-25 pointer-events-none z-0">
         <MatrixRain />
       </div>
-      <Navbar sections={sections} admin={admin} />
+      <Navbar sections={sections} admin={admin} onLogout={() => setAdmin(null)} />
       <main>
         <AdminManagedSection sectionKey="home" label="Home" visible={sections.home} admin={admin} sections={sections} setSections={setSections}>
           <Home />
@@ -98,28 +97,12 @@ export default function App() {
   );
 }
 
-function AdminManagedSection({ sectionKey, label, visible, admin, sections, setSections, children }) {
+function AdminManagedSection({ visible, admin, children }) {
   if (!visible && !admin) return null;
 
   const isHiddenForPublic = !visible;
   return (
     <div className="relative">
-      {admin ? (
-        <>
-          <AdminSectionControls
-            sectionKey={sectionKey}
-            label={label}
-            visible={visible}
-            sections={sections}
-            setSections={setSections}
-          />
-          {isHiddenForPublic ? (
-            <div className="absolute top-4 left-4 z-40 px-3 py-1.5 rounded border border-white/20 bg-black/80 text-white/50 font-mono text-[10px] font-bold uppercase tracking-wider pointer-events-none">
-              Hidden from public website
-            </div>
-          ) : null}
-        </>
-      ) : null}
       <div className={isHiddenForPublic ? "grayscale opacity-40" : ""}>
         {children}
       </div>
