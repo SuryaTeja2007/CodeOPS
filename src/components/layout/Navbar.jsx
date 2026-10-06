@@ -3,11 +3,11 @@ import { Link } from "react-scroll";
 import { Menu, X, Terminal } from "lucide-react";
 import { navLinks } from "../../data/misc";
 
-export default function Navbar({ sections }) {
+export default function Navbar({ sections, admin }) {
   const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState("home");
   const [open, setOpen] = useState(false);
-  const visibleLinks = navLinks.filter((link) => !sections || sections[link.section || link.to] !== false);
+  const visibleLinks = navLinks.filter((link) => admin || !sections || sections[link.section || link.to] !== false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -72,7 +72,7 @@ export default function Navbar({ sections }) {
               duration={600}
               offset={-60}
               onClick={() => setOpen(false)}
-              className="py-2 text-white/70 hover:text-[#00FF88] cursor-pointer"
+              className={`py-2 cursor-pointer ${admin && sections?.[link.section || link.to] === false ? "text-white/25" : "text-white/70 hover:text-[#00FF88]"}`}
             >
               {link.label}
             </Link>
