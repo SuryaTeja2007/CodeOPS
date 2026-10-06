@@ -13,7 +13,6 @@ import Leaderboard from "./components/sections/Leaderboard";
 import Gallery from "./components/sections/Gallery";
 import Posters from "./components/sections/Posters";
 import Contact from "./components/sections/Contact";
-import Register from "./components/sections/Register";
 import AdminPanel from "./components/admin/AdminPanel";
 import { api } from "./lib/api";
 import AdminSectionControls from "./components/admin/AdminSectionControls";
@@ -27,7 +26,7 @@ export default function App() {
       return false;
     }
   });
-  const [sections, setSections] = useState({ home:true, stats:true, missionControl:true, events:true, register:true, notifications:true, agents:true, leaderboard:true, gallery:true, posters:true, contact:true });
+  const [sections, setSections] = useState({ home:true, stats:true, missionControl:true, events:true, notifications:true, agents:true, leaderboard:true, gallery:true, posters:true, contact:true });
   const [admin, setAdmin] = useState(null);
   const isAdminRoute = window.location.pathname === "/admin";
 
@@ -74,9 +73,6 @@ export default function App() {
         </AdminManagedSection>
         <AdminManagedSection sectionKey="events" label="Events" visible={sections.events} admin={admin} sections={sections} setSections={setSections}>
           <Events />
-        </AdminManagedSection>
-        <AdminManagedSection sectionKey="register" label="Register" visible={sections.register} admin={admin} sections={sections} setSections={setSections}>
-          <Register />
         </AdminManagedSection>
         <AdminManagedSection sectionKey="notifications" label="Notifications" visible={sections.notifications} admin={admin} sections={sections} setSections={setSections}>
           <AlertConsole />
