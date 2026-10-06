@@ -2,7 +2,8 @@ import { Link } from "react-scroll";
 import { FaFacebookF, FaLinkedinIn, FaInstagram, FaDiscord } from "react-icons/fa";
 import { navLinks } from "../../data/misc";
 
-export default function Footer() {
+export default function Footer({ sections }) {
+  const visibleLinks = navLinks.filter((link) => !sections || sections[link.section || link.to] !== false);
   return (
     <footer id="footer" className="border-t border-[#00FF88]/15 bg-[#030303] px-4 md:px-8 py-10">
       <div className="max-w-7xl mx-auto">
@@ -23,7 +24,7 @@ export default function Footer() {
           <div>
             <div className="text-white/70 uppercase text-xs tracking-widest mb-3">Quick Access</div>
             <div className="flex flex-col gap-2 text-xs">
-              {navLinks.slice(0, 6).map((l) => (
+              {visibleLinks.slice(0, 6).map((l) => (
                 <Link key={l.to} to={l.to} smooth duration={600} offset={-70} className="text-white/50 hover:text-[#00FF88] cursor-pointer">
                   {l.label}
                 </Link>
