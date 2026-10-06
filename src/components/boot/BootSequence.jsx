@@ -6,13 +6,6 @@ export default function BootSequence({ onAudioChoice, onDone }) {
   const [phase, setPhase] = useState("choice");
 
   useEffect(() => {
-    if (phase !== "video") return undefined;
-
-    const videoTimer = setTimeout(() => setPhase("blank"), 3000);
-    return () => clearTimeout(videoTimer);
-  }, [phase]);
-
-  useEffect(() => {
     if (phase !== "blank") return undefined;
 
     const blankTimer = setTimeout(onDone, 500);
@@ -73,6 +66,7 @@ export default function BootSequence({ onAudioChoice, onDone }) {
             autoPlay
             muted
             playsInline
+            onEnded={() => setPhase("blank")}
             aria-label="Code_OPS introduction"
           />
         ) : (
