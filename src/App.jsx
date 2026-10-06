@@ -18,6 +18,7 @@ import { api } from "./lib/api";
 import AdminSectionControls from "./components/admin/AdminSectionControls";
 
 export default function App() {
+  const audioRef = useRef(null);
   const [booted, setBooted] = useState(() => {
     try {
       return sessionStorage.getItem("skipCodeOpsBoot") === "1";
@@ -35,6 +36,17 @@ export default function App() {
     } catch {}
   }, [booted]);
 
+  useEffect(() => () => audioRef.current?.pause(), []);
+
+  const handleAudioChoice = (enabled) => {
+    if (!enabled) return;
+    const audio = new Audio("/bgm1.mp3");
+    audio.loop = true;
+    audio.volume = 0.35;
+    audioRef.current = audio;
+    audio.play().catch(() => { audioRef.current = null; });
+  };
+
   useEffect(() => {
     api.siteSettings.get().then((data) => setSections(data.sections)).catch(() => {});
     api.me().then((data) => setAdmin(data.admin || null)).catch(() => setAdmin(null));
@@ -44,7 +56,7 @@ export default function App() {
 
   return (
     <>
-      {!booted && <BootSequence onDone={() => setBooted(true)} />}
+      {!booted && <BootSequence onAudioChoice={handleAudioChoice} onDone={() => setBooted(true)} />}
       <div className="fixed inset-0 opacity-25 pointer-events-none z-0">
         <MatrixRain />
       </div>
