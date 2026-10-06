@@ -6,6 +6,13 @@ export default function BootSequence({ onAudioChoice, onDone }) {
   const [phase, setPhase] = useState("choice");
 
   useEffect(() => {
+    if (phase !== "choice") return undefined;
+
+    const startTimer = setTimeout(() => setPhase("choice-ready"), 200);
+    return () => clearTimeout(startTimer);
+  }, [phase]);
+
+  useEffect(() => {
     if (phase !== "blank") return undefined;
 
     const blankTimer = setTimeout(onDone, 500);
@@ -27,7 +34,7 @@ export default function BootSequence({ onAudioChoice, onDone }) {
         transition={{ duration: 0.25 }}
         className="fixed inset-0 z-[100] overflow-hidden bg-[#050505]"
       >
-        {phase === "choice" ? (
+        {phase === "choice" || phase === "choice-ready" ? (
           <div className="relative flex h-full items-center justify-center px-6">
             <div className="cyber-grid absolute inset-0 opacity-30" />
             <div className="absolute bottom-5 left-5 z-10 font-mono text-[10px] tracking-wider text-white/40">
@@ -69,9 +76,9 @@ export default function BootSequence({ onAudioChoice, onDone }) {
             onEnded={() => setPhase("blank")}
             aria-label="Code_OPS introduction"
           />
-        ) : (
+        ) : phase === "blank" ? (
           <div className="h-full w-full bg-[#050505]" />
-        )}
+        ) : null}
       </motion.div>
     </AnimatePresence>
   );
