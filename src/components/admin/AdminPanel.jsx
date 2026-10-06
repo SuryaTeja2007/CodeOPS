@@ -45,6 +45,15 @@ export default function AdminPanel() {
 
   const fail = (e) => { setMessage(""); setError(e?.message || "Request failed"); };
 
+  useEffect(() => {
+    if (!error && !message) return;
+    const timer = window.setTimeout(() => {
+      setError("");
+      setMessage("");
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [error, message]);
+
   const clearForm = () => {
     setEditing(null); setEvent(emptyEvent); setLeader(emptyLeaderboard);
     setAgent(emptyAgent); setGalleryItem(emptyGallery); setPoster(emptyPoster);
@@ -54,11 +63,13 @@ export default function AdminPanel() {
     try {
       const { admin: current } = await api.me();
       setAdmin(current);
-      const [e,l,a,g,p,c] = await Promise.all([
-        api.events(), api.leaderboard.list(), api.agents.list(), api.gallery.list(), api.posters.list(), api.contact.get()
+      const [e,l,a,g,p,c,settings] = await Promise.all([
+        api.events(), api.leaderboard.list(), api.agents.list(), api.gallery.list(), api.posters.list(),
+        api.contact.get(), api.siteSettings.get()
       ]);
       setEvents(e); setLeaderboard(l); setAgents(a); setGallery(g); setPosters(p);
       setContact(Object.fromEntries(Object.keys(emptyContact).map((key) => [key, c?.[key] || ""])));
+      setSections(settings?.sections || { home:true, stats:true, missionControl:true, events:true, notifications:true, agents:true, leaderboard:true, gallery:true, posters:true, contact:true });
       if (current.role === "superadmin") setAdmins(await api.admins());
       setMedia(await api.media.list());
     } catch { setAdmin(null); } finally { setLoading(false); }
@@ -272,7 +283,16 @@ export default function AdminPanel() {
 
         {tab === "posters" ? <Section title="MANAGE POSTERS"><form onSubmit={(e) => { e.preventDefault(); save("posters", poster, () => setPoster(emptyPoster)); }} className="grid md:grid-cols-2 gap-3"><input required className={inputClass} placeholder="POSTER TITLE" value={poster.title} onChange={(e) => setPoster({ ...poster, title:e.target.value })} /><input className={inputClass} placeholder="DOWNLOAD URL (optional)" value={poster.downloadUrl} onChange={(e) => setPoster({ ...poster, downloadUrl:e.target.value })} /><div className="md:col-span-2">{mediaSelect(poster.img, (value) => setPoster({ ...poster, img:value }), "POSTER IMAGE — REUSE AN EXISTING UPLOAD", true)}</div><div className="flex gap-2 md:col-span-2"><button className={buttonClass} type="submit">{editing?.resource === "posters" ? "Save" : "Add"} poster</button>{editing?.resource === "posters" ? <button type="button" className={secondaryClass} onClick={clearForm}>Cancel</button> : null}</div></form><List items={posters} render={(item) => <span className="text-[#00D9FF]">{item.title}</span>} onEdit={(item) => edit("posters", item)} onDelete={(id) => remove("posters", id, setPosters)} /></Section> : null}
 
-        {tab === "visibility" ? <Section title="CONTROL WEBSITE SECTIONS"><p className="text-xs text-white/40 mb-4">Turn sections on or off without deleting their content. Hidden sections are removed from the public website and their navigation links are hidden too.</p><form onSubmit={async (e) => { e.preventDefault(); try { const saved = await api.siteSettings.update(sections); setSections(saved.sections); setMessage("Website section visibility updated."); setError(""); } catch (e) { fail(e); } }} className="space-y-3">{[["home","Home"],["stats","Stats Dashboard"],["missionControl","Mission Control"],["events","Events"],["notifications","Notifications"],["agents","Agent Database"],["leaderboard","Leaderboard"],["gallery","Gallery"],["posters","Posters"],["contact","Contact"]].map(([key,label]) => <label key={key} className="flex items-center justify-between gap-4 border border-white/10 rounded px-4 py-3 cursor-pointer"><span><span className="block text-sm">{label}</span><span className="text-[10px] text-white/30">{sections[key] ? "VISIBLE ON WEBSITE" : "HIDDEN FROM WEBSITE"}</span></span><input type="checkbox" checked={!!sections[key]} onChange={(e) => setSections({ ...sections, [key]:e.target.checked })} className="h-4 w-4 accent-[#00FF88]" /></label>)}<button className={buttonClass} type="submit">Save section visibility</button></form></Section> : null}\n\n        {tab === "contact" ? <Section title="MANAGE CONTACT SECTION"><form onSubmit={saveContact} className="grid md:grid-cols-2 gap-3">{Object.entries(contact).map(([key,value]) => <div key={key}><label className="block text-[10px] text-white/40 mb-1">{key.replace(/([A-Z])/g, " $1").toUpperCase()}</label><input className={inputClass} value={value || ""} onChange={(e) => setContact({ ...contact, [key]:e.target.value })} /></div>)}<button className={buttonClass + " md:col-span-2"} type="submit">Save contact section</button></form></Section> : null}
+        {tab === "visibility" ? <Section title="CONTROL WEBSITE SECTIONS"><p className="text-xs text-white/40 mb-4">Turn sections on or off without deleting their content. Hidden sections are removed from the public website and their navigation links are hidden too.</p><form onSubmit={async (e) => { e.preventDefault(); try { const saved = await api.siteSettings.update(sections); setSections(saved.sections); setMessage("Website section visibility updated."); setError(""); } catch (e) { fail(e); } }} className="space-y-3">{[["home","Home"],["stats","Stats Dashboard"],["missionControl","Mission Control"],["events","Events"],["notifications","Notifications"],["agents","Agent Database"],["leaderboard","Leaderboard"],["gallery","Gallery"],["posters","Posters"],["contact","Contact"]].map(([key,label]) => <label key={key} className="flex items-center justify-between gap-4 border border-white/10 rounded px-4 py-3 cursor-pointer"><span><span className="block text-sm">{label}</span><span className="text-[10px] text-white/30">{sections[key] ? "VISIBLE ON WEBSITE" : "HIDDEN FROM WEBSITE"}</span></span><button
+                type="button"
+                role="switch"
+                aria-checked={!!sections[key]}
+                aria-label={`Toggle ${label} section`}
+                onClick={() => setSections({ ...sections, [key]:!sections[key] })}
+                className={`relative w-11 h-6 rounded-full border transition-colors ${sections[key] ? "bg-[#00FF88] border-[#00FF88]" : "bg-white/10 border-white/20"}`}
+              >
+                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-black transition-transform ${sections[key] ? "translate-x-5" : "translate-x-0.5"}`} />
+              </button></label>)}<button className={buttonClass} type="submit">Save section visibility</button></form></Section> : null}\n\n        {tab === "contact" ? <Section title="MANAGE CONTACT SECTION"><form onSubmit={saveContact} className="grid md:grid-cols-2 gap-3">{Object.entries(contact).map(([key,value]) => <div key={key}><label className="block text-[10px] text-white/40 mb-1">{key.replace(/([A-Z])/g, " $1").toUpperCase()}</label><input className={inputClass} value={value || ""} onChange={(e) => setContact({ ...contact, [key]:e.target.value })} /></div>)}<button className={buttonClass + " md:col-span-2"} type="submit">Save contact section</button></form></Section> : null}
 
         {tab === "media" ? <Section title="MEDIA LIBRARY"><form onSubmit={uploadMedia} className="grid md:grid-cols-3 gap-3 mb-6"><input className={inputClass} placeholder="MEDIA TITLE (optional)" value={upload.title} onChange={(e) => setUpload({ ...upload, title:e.target.value })} /><select className={inputClass} value={upload.kind} onChange={(e) => setUpload({ ...upload, kind:e.target.value })}><option value="image">Image</option><option value="poster">Poster</option></select><input required type="file" accept="image/*" className={inputClass + " file:text-white/60"} onChange={(e) => setUpload({ ...upload, file:e.target.files?.[0] || null })} /><button className={buttonClass + " md:col-span-3"} type="submit"><Upload size={14} />Upload to library</button></form><div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">{media.map((item) => <div key={item._id} className="border border-white/10 rounded p-3"><img src={resolveAssetUrl(item.url)} alt={item.title || ""} className="w-full h-40 object-cover rounded mb-3" /><div className="text-xs text-white/70 truncate">{item.title || "Untitled"}</div><div className="text-[10px] text-white/30 mb-2">{item.kind}</div><button onClick={() => removeMedia(item._id)} className="text-[#FF3B3B] text-xs uppercase">Delete</button></div>)}</div></Section> : null}
       </div>
