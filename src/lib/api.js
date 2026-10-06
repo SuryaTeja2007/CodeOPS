@@ -67,6 +67,10 @@ export const api = {
     },
     remove: (id) => request(`/media/${id}`, { method:"DELETE" }),
   },
+  siteSettings: {
+    get: () => request("/site-settings"),
+    update: (sections) => request("/site-settings", { method:"PUT", body:JSON.stringify({ sections }) }),
+  },
   stats: {
     get: () => request("/stats"),
     update: (item) => request("/stats", { method:"PUT", body:JSON.stringify(item) }),
