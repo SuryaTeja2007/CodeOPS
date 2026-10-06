@@ -252,7 +252,7 @@ export default function AdminPanel() {
         <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div><h1 className="font-display text-2xl md:text-3xl">ADMIN PANEL</h1><p className="text-white/40 text-xs mt-2">{admin.username} · {admin.role}</p></div>
           <div className="flex flex-wrap gap-2">
-            <a href="/" className={secondaryClass}><ExternalLink size={14} />View website</a>
+            <a href="/" onClick={() => { try { sessionStorage.setItem("skipCodeOpsBoot", "1"); } catch {} }} className={secondaryClass}><ExternalLink size={14} />View website</a>
             <button onClick={logout} className={secondaryClass}><LogOut size={14} />Logout</button>
           </div>
         </header>
