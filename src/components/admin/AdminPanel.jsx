@@ -22,7 +22,7 @@ export default function AdminPanel() {
   const [admin, setAdmin] = useState(null);
   const [admins, setAdmins] = useState([]);
   const [login, setLogin] = useState({ username:"", password:"" });
-  const [tab, setTab] = useState("events");
+  const [tab, setTab] = useState(() => new URLSearchParams(window.location.search).get("tab") || "events");
   const [events, setEvents] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [agents, setAgents] = useState([]);
