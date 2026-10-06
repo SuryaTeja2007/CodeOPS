@@ -81,6 +81,7 @@ router.post("/event", requireAuth, upload.single("poster"), async (req, res) => 
       await Media.create({ title: req.body.title || req.file.originalname, url, kind: "poster" });
       req.body.poster = url;
     }
+    if (!req.body.code?.trim()) req.body.code = await nextEventCode();
     const item = await Event.create(req.body);
     res.status(201).json(item);
   } catch (e) { res.status(400).json({ message: e.message }); }
@@ -95,6 +96,7 @@ router.put("/event/:id", requireAuth, upload.single("poster"), async (req, res) 
     } else {
       delete req.body.poster;
     }
+    if (!req.body.code?.trim()) req.body.code = await nextEventCode();
     const item = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!item) return res.status(404).json({ message: "Not found" });
     res.json(item);
