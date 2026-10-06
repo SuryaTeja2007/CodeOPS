@@ -253,17 +253,52 @@ export default function AdminPanel() {
     }
   }
 
-  const mediaSelect = (value, onChange, label = "IMAGE / POSTER") => (
+  async function uploadInlineMedia(file, kind, onChange) {
+    if (!file) return;
+    try {
+      const item = await api.media.upload(file, "", kind);
+      setMedia((items) => [item, ...items]);
+      onChange(item.url);
+      setMessage("Image uploaded and selected.");
+      setError("");
+    } catch (e) {
+      fail(e);
+    }
+  }
+
+  const mediaSelect = (value, onChange, label = "IMAGE / POSTER", allowUpload = false) => (
     <div>
       <label className="block text-[10px] text-white/40 mb-1">{label}</label>
-      <select className={inputClass} value={value || ""} onChange={(e) => onChange(e.target.value)}>
-        <option value="">Select from media library</option>
-        {media.map((item) => (
-          <option key={item._id} value={item.url}>
-            {item.title || item.url} [{item.kind}]
-          </option>
-        ))}
-      </select>
+      <div className="flex flex-col md:flex-row gap-2">
+        <select className={inputClass} value={value || ""} onChange={(e) => onChange(e.target.value)}>
+          <option value="">Select from media library</option>
+          {media.map((item) => (
+            <option key={item._id} value={item.url}>
+              {item.title || item.url} [{item.kind}]
+            </option>
+          ))}
+        </select>
+        {allowUpload ? (
+          <label className={secondaryClass + " shrink-0 cursor-pointer"}>
+            <Upload size={14} />
+            Upload image
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                uploadInlineMedia(e.target.files?.[0], label.toLowerCase().includes("poster") ? "poster" : "image", onChange);
+                e.target.value = "";
+              }}
+            />
+          </label>
+        ) : null}
+      </div>
+      {allowUpload ? (
+        <div className="text-[10px] text-white/30 mt-1">
+          Choose an existing image, or upload a new one. The upload is added to the media library automatically.
+        </div>
+      ) : null}
       {value ? (
         <img src={resolveAssetUrl(value)} alt="" className="mt-2 h-20 w-16 object-cover rounded border border-white/10" />
       ) : null}
@@ -401,7 +436,7 @@ export default function AdminPanel() {
             <form onSubmit={(e) => { e.preventDefault(); save("gallery", galleryItem, () => setGalleryItem(emptyGallery)); }} className="grid md:grid-cols-2 gap-3">
               <input className={inputClass} placeholder="TITLE (optional)" value={galleryItem.title} onChange={(e) => setGalleryItem({ ...galleryItem, title:e.target.value })} />
               <input required className={inputClass} placeholder="CATEGORY" value={galleryItem.category} onChange={(e) => setGalleryItem({ ...galleryItem, category:e.target.value })} />
-              <div className="md:col-span-2">{mediaSelect(galleryItem.img, (value) => setGalleryItem({ ...galleryItem, img:value }))}</div>
+              <div className="md:col-span-2">{mediaSelect(galleryItem.img, (value) => setGalleryItem({ ...galleryItem, img:value }), "GALLERY IMAGE", true)}</div>
               <div className="flex gap-2 md:col-span-2">
                 <button className={buttonClass} type="submit">{editing?.resource === "gallery" ? "Save" : "Add"} gallery image</button>
                 {editing?.resource === "gallery" ? <button type="button" className={secondaryClass} onClick={clearForm}>Cancel</button> : null}
@@ -416,7 +451,7 @@ export default function AdminPanel() {
             <form onSubmit={(e) => { e.preventDefault(); save("posters", poster, () => setPoster(emptyPoster)); }} className="grid md:grid-cols-2 gap-3">
               <input required className={inputClass} placeholder="POSTER TITLE" value={poster.title} onChange={(e) => setPoster({ ...poster, title:e.target.value })} />
               <input className={inputClass} placeholder="DOWNLOAD URL (optional)" value={poster.downloadUrl} onChange={(e) => setPoster({ ...poster, downloadUrl:e.target.value })} />
-              <div className="md:col-span-2">{mediaSelect(poster.img, (value) => setPoster({ ...poster, img:value }), "POSTER IMAGE — REUSE AN EXISTING UPLOAD")}</div>
+              <div className="md:col-span-2">{mediaSelect(poster.img, (value) => setPoster({ ...poster, img:value }), "POSTER IMAGE — REUSE AN EXISTING UPLOAD", true)}</div>
               <div className="flex gap-2 md:col-span-2">
                 <button className={buttonClass} type="submit">{editing?.resource === "posters" ? "Save" : "Add"} poster</button>
                 {editing?.resource === "posters" ? <button type="button" className={secondaryClass} onClick={clearForm}>Cancel</button> : null}
