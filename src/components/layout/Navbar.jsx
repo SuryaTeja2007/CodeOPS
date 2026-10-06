@@ -64,7 +64,7 @@ export default function Navbar({ sections }) {
 
       {open && (
         <div className="lg:hidden glass mt-2 mx-4 rounded-lg p-4 flex flex-col gap-2 font-mono text-sm uppercase">
-          {navLinks.map((link) => (
+          {visibleLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
