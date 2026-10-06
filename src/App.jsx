@@ -44,7 +44,7 @@ export default function App() {
         {sections.posters && <Posters />}
         {sections.contact && <Contact />}
       </main>
-      <Footer />
+      <Footer sections={sections} />
     </>
   );
 }
