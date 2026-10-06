@@ -239,7 +239,7 @@ export default function AdminPanel() {
           <input type="password" className={inputClass + " mb-6"} value={login.password} onChange={(e) => setLogin({ ...login, password:e.target.value })} />
           <div className="flex flex-wrap items-center gap-2">
             <button className={buttonClass} type="submit"><LogIn size={15} />Authenticate</button>
-            <a href="/" className={secondaryClass}><ArrowLeft size={14} />Back to website</a>
+            <a href="/" onClick={() => { try { sessionStorage.setItem("skipCodeOpsBoot", "1"); } catch {} }} className={secondaryClass}><ArrowLeft size={14} />Back to website</a>
           </div>
         </form>
       </main>
