@@ -7,7 +7,6 @@ const siteSettingsSchema = new mongoose.Schema(
       stats: { type: Boolean, default: true },
       missionControl: { type: Boolean, default: true },
       events: { type: Boolean, default: true },
-      register: { type: Boolean, default: true },
       notifications: { type: Boolean, default: true },
       agents: { type: Boolean, default: true },
       leaderboard: { type: Boolean, default: true },
