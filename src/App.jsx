@@ -17,9 +17,21 @@ import AdminPanel from "./components/admin/AdminPanel";
 import { api } from "./lib/api";
 
 export default function App() {
-  const [booted, setBooted] = useState(false);
+  const [booted, setBooted] = useState(() => {
+    try {
+      return sessionStorage.getItem("skipCodeOpsBoot") === "1";
+    } catch {
+      return false;
+    }
+  });
   const [sections, setSections] = useState({ home:true, stats:true, missionControl:true, events:true, notifications:true, agents:true, leaderboard:true, gallery:true, posters:true, contact:true });
   const isAdminRoute = window.location.pathname === "/admin";
+
+  useEffect(() => {
+    try {
+      if (booted) sessionStorage.removeItem("skipCodeOpsBoot");
+    } catch {}
+  }, [booted]);
 
   useEffect(() => { api.siteSettings.get().then((data) => setSections(data.sections)).catch(() => {}); }, []);
 
