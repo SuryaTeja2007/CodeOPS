@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-scroll";
 import { Menu, X, Terminal } from "lucide-react";
 import { navLinks } from "../../data/misc";
+import { api } from "../../lib/api";
 
-export default function Navbar({ sections, admin }) {
+export default function Navbar({ sections, admin, onLogout }) {
   const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState("home");
   const [open, setOpen] = useState(false);
