@@ -34,7 +34,7 @@ export const posters = [
   // { id: 3, title: "Recon: Web Exploitation", img: "https://placehold.co/500x650/050505/FF3B3B?text=Poster+MSN-016", downloadUrl: "#" },
 ];
 
-// export const registerCards = [
+export const registerCards = [
 //   { id: 1, title: "Club Membership", desc: "Join CODEOPS. Full access to workshops, mission files, and the agent database.", url: "https://forms.gle/membership" },
 //   { id: 2, title: "Hackathons", desc: "Register for upcoming hackathons as a solo agent or full squad.", url: "https://forms.gle/hackathons" },
 //   { id: 3, title: "Coding Competitions", desc: "Enter CP Dojo rounds and inter-college competitive programming meets.", url: "https://forms.gle/competitions" },
