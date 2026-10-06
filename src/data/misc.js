@@ -54,7 +54,7 @@ export const statsData = [
 
 export const navLinks = [
   { to: "home", label: "Home" },
-  { to: "mission-control", label: "Mission Control" },
+  { to: "mission-control", label: "Mission Control", section: "missionControl" },
   { to: "events", label: "Events" },
   // { to: "register", label: "Register" },
   { to: "notifications", label: "Notifications" },
