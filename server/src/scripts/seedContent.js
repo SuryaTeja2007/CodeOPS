@@ -24,11 +24,15 @@ const agents = [
 ];
 
 const leaderboard = [
-  [["Devraj Sen","ZeroDay","Cyber Security","Ω-Class Command Elite",24800,81],["Ishita Bose","SilentStack","Core Committee","S-Class Cyber Phantom",19870,55],
-  ["Rehan Iqbal","NullByte","Cyber Security","S-Class Cyber Phantom",18420,47],["Ananya Rao","ShadowRoot","Competitive Programming","A-Class Elite Agent",15310,63],
-  ["Yashwanth Reddy","QuantumHex","App Development","A-Class Elite Agent",13040,38],["Kiran Vellanki","GhostPacket","Web Development","B-Class Specialist",9210,22],
-  ["Sneha Patil","CipherFox","Artificial Intelligence","C-Class Operator",4120,9],["Meher Chawla","Echo404","Design","D-Class Recruit",980,3]
-].map(([name,nickname,division,threatClass,xp,missions])=>({name,nickname,division,threatClass,xp,missions}));
+  {name:"Devraj Sen",nickname:"ZeroDay",division:"Cyber Security",threatClass:"Ω-Class Command Elite",xp:24800,missions:81},
+  {name:"Ishita Bose",nickname:"SilentStack",division:"Core Committee",threatClass:"S-Class Cyber Phantom",xp:19870,missions:55},
+  {name:"Rehan Iqbal",nickname:"NullByte",division:"Cyber Security",threatClass:"S-Class Cyber Phantom",xp:18420,missions:47},
+  {name:"Ananya Rao",nickname:"ShadowRoot",division:"Competitive Programming",threatClass:"A-Class Elite Agent",xp:15310,missions:63},
+  {name:"Yashwanth Reddy",nickname:"QuantumHex",division:"App Development",threatClass:"A-Class Elite Agent",xp:13040,missions:38},
+  {name:"Kiran Vellanki",nickname:"GhostPacket",division:"Web Development",threatClass:"B-Class Specialist",xp:9210,missions:22},
+  {name:"Sneha Patil",nickname:"CipherFox",division:"Artificial Intelligence",threatClass:"C-Class Operator",xp:4120,missions:9},
+  {name:"Meher Chawla",nickname:"Echo404",division:"Design",threatClass:"D-Class Recruit",xp:980,missions:3}
+];
 
 const gallery = [
   ["Events 01","Events","https://placehold.co/500x350/050505/00FF88?text=Events+01"],
@@ -53,7 +57,6 @@ const defaultEvent = {
 };
 
 export async function seedDefaultContent() {
-  await mongoose.connect(process.env.MONGODB_URI);
   const marker = await SiteSettings.findOne({ key:"default-content" });
   if (marker?.initialized) {
     console.log("Default content already initialized.");
