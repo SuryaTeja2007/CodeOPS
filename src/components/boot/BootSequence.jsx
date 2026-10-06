@@ -34,7 +34,7 @@ export default function BootSequence({ onAudioChoice, onDone }) {
 
   useEffect(() => {
     if (phase !== "video") return;
-    const t = setTimeout(() => setPhase("blank"), 3000);
+    const t = setTimeout(() => setPhase("boot"), 3000);
     return () => clearTimeout(t);
   }, [phase]);
 
