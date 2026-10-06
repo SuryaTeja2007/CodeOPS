@@ -269,34 +269,48 @@ export default function AdminPanel() {
   const mediaSelect = (value, onChange, label = "IMAGE / POSTER", allowUpload = false) => (
     <div>
       <label className="block text-[10px] text-white/40 mb-1">{label}</label>
-      <div className="flex flex-col md:flex-row gap-2">
-        <select className={inputClass} value={value || ""} onChange={(e) => onChange(e.target.value)}>
+      <div>
+        <select
+          className={inputClass}
+          value={value || ""}
+          onChange={(e) => {
+            const selected = e.target.value;
+            if (selected === "__UPLOAD_NEW__") {
+              const fileInput = e.currentTarget.parentElement.querySelector('input[type="file"]');
+              if (fileInput) fileInput.click();
+              e.currentTarget.value = value || "";
+              return;
+            }
+            onChange(selected);
+          }}
+        >
           <option value="">Select from media library</option>
           {media.map((item) => (
             <option key={item._id} value={item.url}>
               {item.title || item.url} [{item.kind}]
             </option>
           ))}
+          {allowUpload ? <option value="__UPLOAD_NEW__">+ Upload new image...</option> : null}
         </select>
         {allowUpload ? (
-          <label className={secondaryClass + " shrink-0 cursor-pointer"}>
-            <Upload size={14} />
-            Upload image
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                uploadInlineMedia(e.target.files?.[0], label.toLowerCase().includes("poster") ? "poster" : "image", onChange);
-                e.target.value = "";
-              }}
-            />
-          </label>
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              uploadInlineMedia(
+                e.target.files?.[0],
+                label.toLowerCase().includes("poster") ? "poster" : "image",
+                onChange
+              );
+              e.target.value = "";
+            }}
+          />
         ) : null}
       </div>
       {allowUpload ? (
         <div className="text-[10px] text-white/30 mt-1">
-          Choose an existing image, or upload a new one. The upload is added to the media library automatically.
+          Select “+ Upload new image...” to upload directly from this field. The image is added to the media library automatically.
         </div>
       ) : null}
       {value ? (
