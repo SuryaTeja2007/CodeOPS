@@ -8,8 +8,15 @@ export default function BootSequence({ onAudioChoice, onDone }) {
   useEffect(() => {
     if (phase !== "video") return undefined;
 
-    const videoTimer = setTimeout(onDone, 3000);
+    const videoTimer = setTimeout(() => setPhase("blank"), 3000);
     return () => clearTimeout(videoTimer);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== "blank") return undefined;
+
+    const blankTimer = setTimeout(onDone, 500);
+    return () => clearTimeout(blankTimer);
   }, [phase, onDone]);
 
   const chooseAudio = (enabled) => {
@@ -59,7 +66,7 @@ export default function BootSequence({ onAudioChoice, onDone }) {
               </div>
             </div>
           </div>
-        ) : (
+        ) : phase === "video" ? (
           <video
             className="h-full w-full object-cover"
             src={introVideo}
@@ -68,6 +75,8 @@ export default function BootSequence({ onAudioChoice, onDone }) {
             playsInline
             aria-label="Code_OPS introduction"
           />
+        ) : (
+          <div className="h-full w-full bg-[#050505]" />
         )}
       </motion.div>
     </AnimatePresence>
