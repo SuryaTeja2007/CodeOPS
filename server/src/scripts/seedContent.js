@@ -7,7 +7,6 @@ import Gallery from "../models/Gallery.js";
 import Poster from "../models/Poster.js";
 import Contact from "../models/Contact.js";
 import Stats from "../models/Stats.js";
-import SiteSettings from "../models/SiteSettings.js";
 import Media from "../models/Media.js";
 
 dotenv.config();
@@ -57,8 +56,8 @@ const defaultEvent = {
 };
 
 export async function seedDefaultContent() {
-  const marker = await SiteSettings.findOne({ key:"default-content" });
-  if (marker?.initialized) {
+  const marker = await Event.findOne({ code:defaultEvent.code }).select("_id").lean();
+  if (marker) {
     console.log("Default content already initialized.");
     return;
   }
@@ -80,7 +79,6 @@ export async function seedDefaultContent() {
     mapUrl:"https://www.google.com/maps?q=Vardhaman%20College%20of%20Engineering&output=embed"
   }, {upsert:true,new:true,setDefaultsOnInsert:true});
   await Stats.findOneAndUpdate({}, {activeAgents:18,communityMembers:540,projectsCompleted:76,workshopsConducted:34,hackathonsOrganised:12}, {upsert:true,new:true,setDefaultsOnInsert:true});
-  await SiteSettings.findOneAndUpdate({key:"default-content"},{key:"default-content",initialized:true},{upsert:true,new:true,setDefaultsOnInsert:true});
   console.log("Default CodeOPS content initialized.");
 }
 
