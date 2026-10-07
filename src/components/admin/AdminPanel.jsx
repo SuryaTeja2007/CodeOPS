@@ -4,7 +4,7 @@ import { api, resolveAssetUrl } from "../../lib/api";
 
 const emptyEvent = { code:"", title:"", description:"", venue:"", deadline:"", status:"OPEN", poster:"", registerUrl:"" };
 const emptyLeaderboard = { name:"", nickname:"", threatClass:"", division:"", xp:0, missions:0 };
-const emptyAgent = { id:"", name:"", nickname:"", division:"", status:"Online", threatClass:"", clearance:0, xp:0, missions:0, language:"", project:"", github:"", linkedin:"", portfolio:"", joined:"", photo:"" };
+const emptyAgent = { id:"", name:"", nickname:"", department:"", status:"Online", position:"", clearance:0, xp:0, missions:0, language:"", github:"", linkedin:"", portfolio:"", joined:"", photo:"" };
 const emptyGallery = { title:"", category:"Events", img:"" };
 const emptyPoster = { title:"", img:"", downloadUrl:"" };
 const emptyContact = { facultyCoordinator:"", hod:"", email:"", facebook:"", linkedin:"", instagram:"", discord:"", mapUrl:"" };
