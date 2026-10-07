@@ -30,11 +30,11 @@ export default function StatCounter({ value, label }) {
   }, [value]);
 
   return (
-    <div ref={ref} className="glass rounded-xl p-6 text-center box-glow-neon">
+    <div ref={ref} className="glass rounded-xl p-6 min-w-0 text-center box-glow-neon">
       <div className="font-display text-3xl md:text-4xl text-glow" style={{ color: "#00FF88" }}>
         {count.toLocaleString()}
       </div>
-      <div className="mt-2 text-xs uppercase tracking-widest text-white/60">{label}</div>
+      <div className="mt-2 text-xs uppercase tracking-wider whitespace-nowrap text-white/60">{label}</div>
     </div>
   );
 }
