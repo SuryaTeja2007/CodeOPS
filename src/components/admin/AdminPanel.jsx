@@ -281,7 +281,15 @@ export default function AdminPanel() {
   function moveAgent(draggedId, targetId) {
     if (!draggedId || draggedId === targetId) return;
     setAgents((items) => {
-      const ordered = [...items].sort((a, b) => defaultAgentSort(a, b));
+      const ordered = [...items].sort((a, b) => {
+        const hasCustom = items.some((item) => Number.isFinite(item.displayOrder));
+        if (hasCustom) {
+          const ao = Number.isFinite(a.displayOrder) ? a.displayOrder : Number.MAX_SAFE_INTEGER;
+          const bo = Number.isFinite(b.displayOrder) ? b.displayOrder : Number.MAX_SAFE_INTEGER;
+          if (ao !== bo) return ao - bo;
+        }
+        return defaultAgentSort(a, b);
+      });
       const from = ordered.findIndex((item) => item._id === draggedId);
       const to = ordered.findIndex((item) => item._id === targetId);
       if (from < 0 || to < 0) return items;
