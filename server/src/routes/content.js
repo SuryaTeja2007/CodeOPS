@@ -93,6 +93,7 @@ router.put("/event/:id", requireAuth, upload.single("poster"), async (req, res) 
       const url = publicUrl(req.file);
       await Media.create({ title: req.body.title || req.file.originalname, url, kind: "poster" });
       req.body.poster = url;
+    }
     // Keep the poster when the edit uses a media-library URL instead of a new file.
     if (!req.file && !req.body.poster) {
       delete req.body.poster;
