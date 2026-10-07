@@ -206,7 +206,6 @@ export default function AdminPanel() {
         name: row.name || row.NAME || "",
         department: row.department || row.DEPARTMENT || "",
         position: row.position || row.POSITION || "",
-        language: row.language || row.LANGUAGE || "",
         github: row.github || row["GITHUB URL"] || "",
         linkedin: row.linkedin || row["LINKEDIN URL"] || "",
         portfolio: row.portfolio || row["PORTFOLIO URL"] || "",
@@ -228,7 +227,7 @@ export default function AdminPanel() {
 
   function downloadAgentTemplate() {
     const csv = [
-      "rollNumber,name,department,position,language,github,linkedin,portfolio,photo",
+      "rollNumber,name,department,position,github,linkedin,portfolio,photo",
       "001,John Doe,,,,,,,",
     ].join("\n");
     const blob = new Blob([csv], { type:"text/csv;charset=utf-8;" });
