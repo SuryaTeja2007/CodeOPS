@@ -10,6 +10,7 @@ const EDITORS = {
   posters: "posters",
   contact: "contact",
   media: "media",
+  stats: "stats",
 };
 
 export default function AdminSectionControls({ sectionKey, label, visible, sections, setSections }) {
