@@ -4,7 +4,7 @@ import { Menu, X, Terminal, Volume2, VolumeX } from "lucide-react";
 import { navLinks } from "../../data/misc";
 import { api } from "../../lib/api";
 
-export default function Navbar({ sections, admin, onLogout }) {
+export default function Navbar({ sections, admin, onLogout, audioMuted, onAudioToggle }) {
   const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState("home");
   const [open, setOpen] = useState(false);
