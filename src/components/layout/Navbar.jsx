@@ -55,6 +55,17 @@ export default function Navbar({ sections, admin, onLogout, audioMuted, onAudioT
         </a>
 
         <button
+          type="button"
+          onClick={onAudioToggle}
+          className="hidden lg:inline-flex items-center gap-2 ml-2 px-3 py-2 border border-[#00FF88]/30 rounded text-[#00FF88] hover:bg-[#00FF88]/10 transition font-mono text-xs uppercase tracking-wider"
+          aria-label={audioMuted ? "Unmute background music" : "Mute background music"}
+          title={audioMuted ? "Unmute background music" : "Mute background music"}
+        >
+          {audioMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+          <span className="hidden sm:inline">{audioMuted ? "UNMUTE" : "MUTE"}</span>
+        </button>
+
+        <button
           className="lg:hidden text-[#00FF88]"
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
