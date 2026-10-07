@@ -274,7 +274,7 @@ export default function AdminPanel() {
             <form onSubmit={saveEvent} className="grid md:grid-cols-2 gap-3">
               <div>
                 <label className="block text-[10px] text-white/40 mb-1">EVENT ID / CODE (optional)</label>
-                <input className={inputClass} placeholder="e.g. CX-002 — leave blank to auto-generate" value={event.code} onChange={(e) => setEvent({ ...event, code:e.target.value })} />
+                <input className={inputClass} placeholder="e.g. CO-002 — leave blank to auto-generate" value={event.code} onChange={(e) => setEvent({ ...event, code:e.target.value })} />
               </div>
               <input required className={inputClass} placeholder="EVENT TITLE" value={event.title} onChange={(e) => setEvent({ ...event, title:e.target.value })} />
               <textarea required className={inputClass + " md:col-span-2"} rows={3} placeholder="DESCRIPTION" value={event.description} onChange={(e) => setEvent({ ...event, description:e.target.value })} />
