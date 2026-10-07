@@ -4,7 +4,6 @@ const agentSchema = new mongoose.Schema(
   {
     rollNumber: { type: String, required: true, unique: true, trim: true },
     name: { type: String, required: true, trim: true },
-    nickname: { type: String, required: true, trim: true },
     department: { type: String, default: "", trim: true },
     status: { type: String, default: "Offline", trim: true },
     position: { type: String, default: "", trim: true },
