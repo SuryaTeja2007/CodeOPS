@@ -280,7 +280,11 @@ export default function AdminPanel() {
               <textarea required className={inputClass + " md:col-span-2"} rows={3} placeholder="DESCRIPTION" value={event.description} onChange={(e) => setEvent({ ...event, description:e.target.value })} />
               <input required className={inputClass} placeholder="VENUE" value={event.venue} onChange={(e) => setEvent({ ...event, venue:e.target.value })} />
               <input required type="datetime-local" className={inputClass} value={event.deadline} onChange={(e) => setEvent({ ...event, deadline:e.target.value })} />
-              <input className={inputClass} placeholder="STATUS" value={event.status} onChange={(e) => setEvent({ ...event, status:e.target.value })} />
+              <select className={inputClass} value={event.status} onChange={(e) => setEvent({ ...event, status:e.target.value })}>
+                <option value="OPEN">OPEN</option>
+                <option value="ONGOING">ONGOING</option>
+                <option value="CLOSED">CLOSED</option>
+              </select>
               <input className={inputClass} placeholder="REGISTRATION URL (optional)" value={event.registerUrl} onChange={(e) => setEvent({ ...event, registerUrl:e.target.value })} />
               <div className="md:col-span-2">{mediaSelect(event.poster, (value) => setEvent({ ...event, poster:value }), "POSTER (optional)", true)}</div>
               <div className="flex gap-2 md:col-span-2"><button className={buttonClass} type="submit">{editing ? "Save event" : "Create event"}</button>{editing ? <button type="button" className={secondaryClass} onClick={clearForm}>Cancel</button> : null}</div>
