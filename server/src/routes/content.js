@@ -93,6 +93,54 @@ router.get("/event", async (_req, res) => {
   res.json(await Event.find().sort({ createdAt: -1 }));
 });
 
+router.post("/agents/import", requireAuth, async (req, res) => {
+  try {
+    if (!Array.isArray(req.body?.agents)) return res.status(400).json({ message: "agents must be an array" });
+
+    const rows = req.body.agents;
+    const valid = [];
+    const seen = new Set();
+
+    for (const row of rows) {
+      const rollNumber = String(row?.rollNumber || "").trim();
+      const name = String(row?.name || "").trim();
+      if (!rollNumber || !name) continue;
+
+      const key = rollNumber.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      valid.push({
+        rollNumber,
+        name,
+        department: String(row?.department || "").trim(),
+        position: String(row?.position || "").trim(),
+        language: String(row?.language || "").trim(),
+        github: String(row?.github || "").trim() || "#",
+        linkedin: String(row?.linkedin || "").trim() || "#",
+        portfolio: String(row?.portfolio || "").trim() || "#",
+        photo: String(row?.photo || "").trim(),
+      });
+    }
+
+    const existing = await Agent.find({
+      rollNumber: { $in: valid.map((item) => item.rollNumber) },
+    }).select("rollNumber").lean();
+
+    const existingRollNumbers = new Set(existing.map((item) => item.rollNumber.toLowerCase()));
+    const toCreate = valid.filter((item) => !existingRollNumbers.has(item.rollNumber.toLowerCase()));
+
+    if (toCreate.length) await Agent.insertMany(toCreate, { ordered: false });
+
+    res.status(201).json({
+      created: toCreate.length,
+      ignored: rows.length - toCreate.length,
+    });
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+});
+
 router.post("/event", requireAuth, upload.single("poster"), async (req, res) => {
   try {
     if (req.file) {
