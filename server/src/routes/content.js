@@ -93,6 +93,19 @@ router.get("/event", async (_req, res) => {
   res.json(await Event.find().sort({ createdAt: -1 }));
 });
 
+router.put("/agents/reorder", requireAuth, async (req, res) => {
+  try {
+    const order = Array.isArray(req.body?.order) ? req.body.order : [];
+    const operations = order.map((id, index) => ({
+      updateOne: { filter: { _id: id }, update: { $set: { displayOrder: index } } },
+    }));
+    if (operations.length) await Agent.bulkWrite(operations);
+    res.json(await Agent.find().sort({ displayOrder: 1, createdAt: 1 }));
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+});
+
 router.post("/agents/import", requireAuth, async (req, res) => {
   try {
     if (!Array.isArray(req.body?.agents)) return res.status(400).json({ message: "agents must be an array" });
