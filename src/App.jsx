@@ -133,7 +133,7 @@ export default function App() {
   );
 }
 
-function AdminManagedSection({ visible, admin, children }) {
+function AdminManagedSection({ sectionKey, label, visible, admin, sections, setSections, children }) {
   if (!visible && !admin) return null;
 
   const isHiddenForPublic = !visible;
