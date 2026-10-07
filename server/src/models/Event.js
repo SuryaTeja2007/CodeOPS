@@ -9,6 +9,7 @@ const eventSchema = new mongoose.Schema(
     venue: { type: String, required: true, trim: true },
     deadline: { type: Date, required: true },
     status: { type: String, enum: ["OPEN", "ONGOING", "CLOSED"], default: "OPEN", trim: true },
+    ongoingSince: { type: Date, default: null },
     registerUrl: { type: String, default: "" },
   },
   { timestamps: true }
