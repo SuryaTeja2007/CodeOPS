@@ -12,14 +12,14 @@ import Media from "../models/Media.js";
 dotenv.config();
 
 const agents = [
-  { id:"AGT-001", name:"Rehan Iqbal", nickname:"NullByte", department:"Cyber Security", status:"Online", position:"S-Class Cyber Phantom", clearance:9, xp:18420, missions:47, language:"Python", github:"#", linkedin:"#", portfolio:"#", joined:"Aug 2023", photo:"https://placehold.co/200x200/050505/00FF88?text=AGT-001" },
-  { id:"AGT-002", name:"Ananya Rao", nickname:"ShadowRoot", department:"Competitive Programming", status:"On Mission", position:"A-Class Elite Agent", clearance:8, xp:15310, missions:63, language:"C++", github:"#", linkedin:"#", portfolio:"#", joined:"Jan 2024", photo:"https://placehold.co/200x200/050505/00D9FF?text=AGT-002" },
-  { id:"AGT-003", name:"Kiran Vellanki", nickname:"GhostPacket", department:"Web Development", status:"Deploying", position:"B-Class Specialist", clearance:6, xp:9210, missions:22, language:"TypeScript", github:"#", linkedin:"#", portfolio:"#", joined:"Mar 2024", photo:"https://placehold.co/200x200/050505/00FF88?text=AGT-003" },
-  { id:"AGT-004", name:"Sneha Patil", nickname:"CipherFox", department:"Artificial Intelligence", status:"Training", position:"C-Class Operator", clearance:4, xp:4120, missions:9, language:"Python", github:"#", linkedin:"#", portfolio:"#", joined:"Jul 2024", photo:"https://placehold.co/200x200/050505/00D9FF?text=AGT-004" },
-  { id:"AGT-005", name:"Devraj Sen", nickname:"ZeroDay", department:"Cyber Security", status:"Online", position:"Ω-Class Command Elite", clearance:10, xp:24800, missions:81, language:"Rust", github:"#", linkedin:"#", portfolio:"#", joined:"Feb 2022", photo:"https://placehold.co/200x200/050505/FF3B3B?text=AGT-005" },
-  { id:"AGT-006", name:"Meher Chawla", nickname:"Echo404", department:"Design", status:"Offline", position:"D-Class Recruit", clearance:2, xp:980, missions:3, language:"Figma / CSS", github:"#", linkedin:"#", portfolio:"#", joined:"Jun 2025", photo:"https://placehold.co/200x200/050505/00FF88?text=AGT-006" },
-  { id:"AGT-007", name:"Yashwanth Reddy", nickname:"QuantumHex", department:"App Development", status:"Online", position:"A-Class Elite Agent", clearance:7, xp:13040, missions:38, language:"Kotlin", github:"#", linkedin:"#", portfolio:"#", joined:"Sep 2023", photo:"https://placehold.co/200x200/050505/00D9FF?text=AGT-007" },
-  { id:"AGT-008", name:"Ishita Bose", nickname:"SilentStack", department:"Core Committee", status:"Online", position:"S-Class Cyber Phantom", clearance:9, xp:19870, missions:55, language:"Go", github:"#", linkedin:"#", portfolio:"#", joined:"Aug 2022", photo:"https://placehold.co/200x200/050505/FF3B3B?text=AGT-008" }
+  { rollNumber:"001", name:"Rehan Iqbal", department:"Cyber Security", position:"S-Class Cyber Phantom", language:"Python", github:"#", linkedin:"#", portfolio:"#", photo:"https://placehold.co/200x200/050505/00FF88?text=AGT-001" },
+  { rollNumber:"002", name:"Ananya Rao", department:"Competitive Programming", position:"A-Class Elite Agent", language:"C++", github:"#", linkedin:"#", portfolio:"#", photo:"https://placehold.co/200x200/050505/00D9FF?text=AGT-002" },
+  { rollNumber:"003", name:"Kiran Vellanki", department:"Web Development", position:"B-Class Specialist", language:"TypeScript", github:"#", linkedin:"#", portfolio:"#", photo:"https://placehold.co/200x200/050505/00FF88?text=AGT-003" },
+  { rollNumber:"004", name:"Sneha Patil", department:"Artificial Intelligence", position:"C-Class Operator", language:"Python", github:"#", linkedin:"#", portfolio:"#", photo:"https://placehold.co/200x200/050505/00D9FF?text=AGT-004" },
+  { rollNumber:"005", name:"Devraj Sen", department:"Cyber Security", position:"Ω-Class Command Elite", language:"Rust", github:"#", linkedin:"#", portfolio:"#", photo:"https://placehold.co/200x200/050505/FF3B3B?text=AGT-005" },
+  { rollNumber:"006", name:"Meher Chawla", department:"Design", position:"D-Class Recruit", language:"Figma / CSS", github:"#", linkedin:"#", portfolio:"#", photo:"https://placehold.co/200x200/050505/00FF88?text=AGT-006" },
+  { rollNumber:"007", name:"Yashwanth Reddy", department:"App Development", position:"A-Class Elite Agent", language:"Kotlin", github:"#", linkedin:"#", portfolio:"#", photo:"https://placehold.co/200x200/050505/00D9FF?text=AGT-007" },
+  { rollNumber:"008", name:"Ishita Bose", department:"Core Committee", position:"S-Class Cyber Phantom", language:"Go", github:"#", linkedin:"#", portfolio:"#", photo:"https://placehold.co/200x200/050505/FF3B3B?text=AGT-008" }
 ];
 
 const leaderboard = [
@@ -49,8 +49,8 @@ const posters = [
 ];
 
 const defaultEvent = {
-  code:"CX-001", title:"Inauguration Event",
-  poster:"https://placehold.co/500x650/050505/00FF88?text=CX-001",
+  code:"CO-001", title:"Inauguration Event",
+  poster:"https://placehold.co/500x650/050505/00FF88?text=CO-001",
   description:"The official inauguration marking the launch of our club, bringing together members to celebrate the beginning of a new journey in technology, innovation, and collaboration.",
   venue:"1009 Seminar Hall", deadline:"2026-09-11T23:59:00", status:"OPEN", registerUrl:"https://forms.gle/example1"
 };
@@ -64,7 +64,7 @@ export async function seedDefaultContent() {
 
   await Event.findOneAndUpdate({ code:defaultEvent.code }, defaultEvent, { upsert:true, new:true, setDefaultsOnInsert:true });
   for (const item of leaderboard) await Leaderboard.findOneAndUpdate({name:item.name,nickname:item.nickname},item,{upsert:true,new:true,setDefaultsOnInsert:true});
-  for (const item of agents) await Agent.findOneAndUpdate({id:item.id},item,{upsert:true,new:true,setDefaultsOnInsert:true});
+  for (const item of agents) await Agent.findOneAndUpdate({rollNumber:item.rollNumber},item,{upsert:true,new:true,setDefaultsOnInsert:true});
   for (const [title,category,img] of gallery) await Gallery.findOneAndUpdate({title,category},{title,category,img},{upsert:true,new:true,setDefaultsOnInsert:true});
   for (const item of posters) {
     await Poster.findOneAndUpdate({title:item.title},item,{upsert:true,new:true,setDefaultsOnInsert:true});
