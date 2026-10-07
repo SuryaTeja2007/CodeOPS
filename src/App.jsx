@@ -14,6 +14,7 @@ import Gallery from "./components/sections/Gallery";
 import Posters from "./components/sections/Posters";
 import Contact from "./components/sections/Contact";
 import AdminPanel from "./components/admin/AdminPanel";
+import AdminSectionControls from "./components/admin/AdminSectionControls";
 import { api } from "./lib/api";
 
 export default function App() {
@@ -138,6 +139,15 @@ function AdminManagedSection({ visible, admin, children }) {
   const isHiddenForPublic = !visible;
   return (
     <div className="relative">
+      {admin ? (
+        <AdminSectionControls
+          sectionKey={sectionKey}
+          label={label}
+          visible={visible}
+          sections={sections}
+          setSections={setSections}
+        />
+      ) : null}
       <div className={isHiddenForPublic ? "grayscale opacity-40" : ""}>
         {children}
       </div>
