@@ -166,8 +166,20 @@ router.delete("/media/:id", requireAuth, async (req, res) => {
 });
 
 router.get("/stats", async (_req, res) => {
-  const stats = await Stats.findOne().sort({ updatedAt: -1 });
-  res.json(stats || { activeAgents: 0, communityMembers: 0, projectsCompleted: 0, workshopsConducted: 0, hackathonsOrganised: 0 });
+  const [stats, activeAgents, totalXp] = await Promise.all([
+    Stats.findOne().sort({ updatedAt: -1 }).lean(),
+    Agent.countDocuments({ status: /^online$/i }),
+    Agent.aggregate([{ $group: { _id: null, total: { $sum: "$xp" } } }]),
+  ]);
+
+  res.json({
+    activeAgents,
+    communityMembers: stats?.communityMembers || 0,
+    projectsCompleted: stats?.projectsCompleted || 0,
+    workshopsConducted: stats?.workshopsConducted || 0,
+    hackathonsOrganised: stats?.hackathonsOrganised || 0,
+    totalXpEarned: totalXp[0]?.total || 0,
+  });
 });
 
 router.put("/stats", requireAuth, async (req, res) => {
