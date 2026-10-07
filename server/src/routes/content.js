@@ -38,11 +38,11 @@ const upload = multer({
 const publicUrl = (file) => `/uploads/${file.filename}`;
 
 async function nextEventCode() {
-  const events = await Event.find({ code: /^CX-\d+$/ }).select("code").lean();
+  const events = await Event.find({ code: /^CO-\d+$/ }).select("code").lean();
   const used = new Set(events.map((item) => Number(item.code.slice(3))));
   let n = 1;
   while (used.has(n)) n += 1;
-  return `CX-${String(n).padStart(3, "0")}`;
+  return `CO-${String(n).padStart(3, "0")}`;
 }
 
 function crud(Model, sort = { createdAt: -1 }) {
