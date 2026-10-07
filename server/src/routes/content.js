@@ -72,7 +72,12 @@ function crud(Model, sort = { createdAt: -1 }) {
   });
 }
 
-router.get("/event", async (_req, res) => res.json(await Event.find().sort({ createdAt: -1 })));
+router.get("/event", async (_req, res) => {
+  const now = new Date();
+  // OPEN events automatically become ONGOING when their countdown reaches zero.
+  await Event.updateMany({ status: "OPEN", deadline: { $lte: now } }, { $set: { status: "ONGOING" } });
+  res.json(await Event.find().sort({ createdAt: -1 }));
+});
 
 router.post("/event", requireAuth, upload.single("poster"), async (req, res) => {
   try {
