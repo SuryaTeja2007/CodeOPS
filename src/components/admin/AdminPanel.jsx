@@ -41,6 +41,8 @@ export default function AdminPanel() {
   const [newAdmin, setNewAdmin] = useState({ username:"", password:"" });
   const [upload, setUpload] = useState({ title:"", kind:"image", file:null });
   const [agentCsvFile, setAgentCsvFile] = useState(null);
+  const [draggingAgentId, setDraggingAgentId] = useState(null);
+  const [agentOrderDirty, setAgentOrderDirty] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -239,6 +241,66 @@ export default function AdminPanel() {
     URL.revokeObjectURL(url);
   }
 
+  function defaultAgentSort(a, b) {
+    const value = (item) => String(item || "").trim().toLowerCase();
+    const rank = (item) => {
+      const p = value(item);
+      if (p === "president") return 0;
+      if (["vice president", "vice-president", "vide-president"].includes(p)) return 1;
+      if (["treasurer", "treasurers"].includes(p)) return 2;
+      if (/^wing admin\s+[a-z]\d+$/i.test(p)) return 3;
+      if (["website handler", "website handlers"].includes(p)) return 4;
+      if (["content creator", "content creators"].includes(p)) return 5;
+      if (["social media handler", "social media handlers"].includes(p)) return 6;
+      if (["photographer", "photographers"].includes(p)) return 7;
+      return 99;
+    };
+    const ar = rank(a.position), br = rank(b.position);
+    if (ar !== br) return ar - br;
+    if (ar === 3) {
+      const wing = (item) => {
+        const match = value(item).match(/^wing admin\s+([a-z])(\d+)$/i);
+        return match ? match[1].toUpperCase() + String(match[2]).padStart(4, "0") : "";
+      };
+      const aw = wing(a.position), bw = wing(b.position);
+      if (aw !== bw) return aw.localeCompare(bw, undefined, { numeric: true });
+    }
+    return String(a.rollNumber || "").localeCompare(String(b.rollNumber || ""), undefined, { numeric: true, sensitivity: "base" });
+  }
+
+  const sortedAgentsForAdmin = [...agents].sort((a, b) => {
+    const hasCustom = agents.some((item) => Number.isFinite(item.displayOrder));
+    if (hasCustom) {
+      const ao = Number.isFinite(a.displayOrder) ? a.displayOrder : Number.MAX_SAFE_INTEGER;
+      const bo = Number.isFinite(b.displayOrder) ? b.displayOrder : Number.MAX_SAFE_INTEGER;
+      if (ao !== bo) return ao - bo;
+    }
+    return defaultAgentSort(a, b);
+  });
+
+  function moveAgent(draggedId, targetId) {
+    if (!draggedId || draggedId === targetId) return;
+    setAgents((items) => {
+      const ordered = [...items].sort((a, b) => defaultAgentSort(a, b));
+      const from = ordered.findIndex((item) => item._id === draggedId);
+      const to = ordered.findIndex((item) => item._id === targetId);
+      if (from < 0 || to < 0) return items;
+      const [moved] = ordered.splice(from, 1);
+      ordered.splice(to, 0, moved);
+      return ordered.map((item, index) => ({ ...item, displayOrder: index }));
+    });
+    setAgentOrderDirty(true);
+  }
+
+  async function saveAgentOrder() {
+    try {
+      const saved = await api.agents.reorder(agents.map((item) => item._id));
+      setAgents(saved);
+      setAgentOrderDirty(false);
+      setMessage("Agent hierarchy updated."); setError("");
+    } catch (e) { fail(e); }
+  }
+
   async function uploadMedia(e) {
     e.preventDefault();
     if (!upload.file) { setError("Choose an image first."); return; }
@@ -415,7 +477,24 @@ export default function AdminPanel() {
               <button type="button" className={secondaryClass} onClick={downloadAgentTemplate}><Download size={14} />Download CSV template</button>
             </div>
             <p className="text-[10px] text-white/30 mb-4">Required CSV columns: <span className="text-white/60">rollNumber</span> and <span className="text-white/60">name</span>. All other columns are optional. Existing roll numbers are ignored.</p>
-            <form onSubmit={(e) => { e.preventDefault(); save("agents", agent, () => setAgent(emptyAgent)); }} className="grid md:grid-cols-3 gap-3">{[["rollNumber","ROLL NUMBER"],["name","NAME"],["department","DEPARTMENT"],["position","POSITION"],["github","GITHUB URL"],["linkedin","LINKEDIN URL"],["portfolio","PORTFOLIO URL"]].map(([key,placeholder]) => <input key={key} className={inputClass} placeholder={placeholder} value={agent[key]} onChange={(e) => setAgent({ ...agent, [key]:e.target.value })} required={["rollNumber","name"].includes(key)} />)}<div className="md:col-span-3">{mediaSelect(agent.photo, (value) => setAgent({ ...agent, photo:value }), "PROFILE IMAGE", true)}</div><div className="flex gap-2 md:col-span-3"><button className={buttonClass} type="submit">{editing?.resource === "agents" ? "Save" : "Add"} agent</button>{editing?.resource === "agents" ? <button type="button" className={secondaryClass} onClick={clearForm}>Cancel</button> : null}</div></form><List items={agents} render={(item) => <span><span className="text-[#00D9FF]">{item.rollNumber}</span><span className="ml-3">{item.name}</span></span>} onEdit={(item) => edit("agents", item)} onDelete={(id) => remove("agents", id, setAgents)} /></Section> : null}
+            <form onSubmit={(e) => { e.preventDefault(); save("agents", agent, () => setAgent(emptyAgent)); }} className="grid md:grid-cols-3 gap-3">{[["rollNumber","ROLL NUMBER"],["name","NAME"],["department","DEPARTMENT"],["position","POSITION"],["github","GITHUB URL"],["linkedin","LINKEDIN URL"],["portfolio","PORTFOLIO URL"]].map(([key,placeholder]) => <input key={key} className={inputClass} placeholder={placeholder} value={agent[key]} onChange={(e) => setAgent({ ...agent, [key]:e.target.value })} required={["rollNumber","name"].includes(key)} />)}<div className="md:col-span-3">{mediaSelect(agent.photo, (value) => setAgent({ ...agent, photo:value }), "PROFILE IMAGE", true)}</div><div className="flex gap-2 md:col-span-3"><button className={buttonClass} type="submit">{editing?.resource === "agents" ? "Save" : "Add"} agent</button>{editing?.resource === "agents" ? <button type="button" className={secondaryClass} onClick={clearForm}>Cancel</button> : null}</div></form><div className="mt-6">
+  <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+    <div>
+      <div className="text-[10px] text-white/40 uppercase tracking-wider">DISPLAY HIERARCHY</div>
+      <div className="text-[10px] text-white/25 mt-1">Drag agents to change their priority. The public Agent Database follows this order once saved.</div>
+    </div>
+    {agentOrderDirty ? <button type="button" className={buttonClass} onClick={saveAgentOrder}>Save hierarchy</button> : null}
+  </div>
+  <div className="space-y-2">
+    {sortedAgentsForAdmin.map((item) => (
+      <div key={item._id} draggable onDragStart={() => setDraggingAgentId(item._id)} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); moveAgent(draggingAgentId, item._id); setDraggingAgentId(null); }} onDragEnd={() => setDraggingAgentId(null)} className={"flex flex-wrap items-center justify-between gap-3 border rounded px-3 py-3 text-xs cursor-grab active:cursor-grabbing " + (draggingAgentId === item._id ? "border-[#00FF88] bg-[#00FF88]/5" : "border-white/10")}>
+        <div className="flex items-center gap-3"><span className="text-white/30 select-none">⋮⋮</span><div><span className="text-[#00D9FF]">{item.rollNumber}</span><span className="ml-3">{item.name}</span><span className="ml-3 text-white/30">{item.position || "No position"}</span></div></div>
+        <div className="flex gap-3"><button type="button" onClick={() => edit("agents", item)} className="text-[#00D9FF]"><Pencil size={14} /></button><button type="button" onClick={() => remove("agents", item._id, setAgents)} className="text-[#FF3B3B]"><Trash2 size={14} /></button></div>
+      </div>
+    ))}
+    {!agents.length ? <div className="text-white/30 text-xs">No entries yet.</div> : null}
+  </div>
+</div></Section> : null}
 
         {tab === "gallery" ? <Section title="MANAGE GALLERY"><form onSubmit={(e) => { e.preventDefault(); save("gallery", galleryItem, () => setGalleryItem(emptyGallery)); }} className="grid md:grid-cols-2 gap-3"><input className={inputClass} placeholder="TITLE (optional)" value={galleryItem.title} onChange={(e) => setGalleryItem({ ...galleryItem, title:e.target.value })} /><input required className={inputClass} placeholder="CATEGORY" value={galleryItem.category} onChange={(e) => setGalleryItem({ ...galleryItem, category:e.target.value })} /><div className="md:col-span-2">{mediaSelect(galleryItem.img, (value) => setGalleryItem({ ...galleryItem, img:value }), "GALLERY IMAGE", true)}</div><div className="flex gap-2 md:col-span-2"><button className={buttonClass} type="submit">{editing?.resource === "gallery" ? "Save" : "Add"} gallery image</button>{editing?.resource === "gallery" ? <button type="button" className={secondaryClass} onClick={clearForm}>Cancel</button> : null}</div></form><List items={gallery} render={(item) => <span><span className="text-[#00D9FF]">{item.category}</span><span className="ml-3">{item.title || "Untitled image"}</span></span>} onEdit={(item) => edit("gallery", item)} onDelete={(id) => remove("gallery", id, setGallery)} /></Section> : null}
 
