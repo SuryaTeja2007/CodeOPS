@@ -227,7 +227,7 @@ export default function AdminPanel() {
 
   function downloadAgentTemplate() {
     const csv = [
-      "rollNumber,name,department,position,github,linkedin,portfolio,photo",
+      "rollNumber,name,department,position,GITHUB URL,LINKEDIN URL,PORTFOLIO URL,photo",
       "001,John Doe,,,,,,,",
     ].join("\n");
     const blob = new Blob([csv], { type:"text/csv;charset=utf-8;" });
