@@ -11,6 +11,7 @@ const agentSchema = new mongoose.Schema(
     linkedin: { type: String, default: "#" },
     portfolio: { type: String, default: "#" },
     photo: { type: String, default: "" },
+    displayOrder: { type: Number, default: null },
   },
   { timestamps: true }
 );
