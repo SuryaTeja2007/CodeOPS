@@ -80,9 +80,17 @@ export default function App() {
 
   if (isAdminRoute) return <AdminPanel />;
 
+  if (!booted) {
+    return (
+      <BootSequence
+        onAudioChoice={handleAudioChoice}
+        onDone={() => setBooted(true)}
+      />
+    );
+  }
+
   return (
     <>
-      {!booted && <BootSequence onAudioChoice={handleAudioChoice} onDone={() => setBooted(true)} />}
       <div className="fixed inset-0 opacity-25 pointer-events-none z-0">
         <MatrixRain />
       </div>
