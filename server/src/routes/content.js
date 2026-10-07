@@ -166,14 +166,14 @@ router.delete("/media/:id", requireAuth, async (req, res) => {
 });
 
 router.get("/stats", async (_req, res) => {
-  const [stats, activeAgents, totalXp] = await Promise.all([
+  const [stats, totalAgents, totalXp] = await Promise.all([
     Stats.findOne().sort({ updatedAt: -1 }).lean(),
-    Agent.countDocuments({ status: /^online$/i }),
+    Agent.countDocuments(),
     Agent.aggregate([{ $group: { _id: null, total: { $sum: "$xp" } } }]),
   ]);
 
   res.json({
-    activeAgents,
+    activeAgents: totalAgents,
     communityMembers: stats?.communityMembers || 0,
     projectsCompleted: stats?.projectsCompleted || 0,
     workshopsConducted: stats?.workshopsConducted || 0,
