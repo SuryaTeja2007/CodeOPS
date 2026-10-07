@@ -62,7 +62,10 @@ export const api = {
   removeEvent: (id) => request(`/event/${id}`, { method:"DELETE" }),
 
   leaderboard: crud("leaderboard"),
-  agents: crud("agent"),
+  agents: {
+    ...crud("agent"),
+    importCsv: (agents) => request("/agents/import", { method:"POST", body:JSON.stringify({ agents }) }),
+  },
   gallery: crud("gallery"),
   posters: crud("poster"),
   contact: {
