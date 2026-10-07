@@ -10,7 +10,7 @@ const emptyPoster = { title:"", img:"", downloadUrl:"" };
 const emptyContact = { facultyCoordinator:"", hod:"", email:"", facebook:"", linkedin:"", instagram:"", discord:"", mapUrl:"" };
 
 const TABS = [
-  ["events","Events"], ["leaderboard","Leaderboard"], ["agents","Agent Database"],
+  ["events","Events"], ["stats","Stats Dashboard"], ["leaderboard","Leaderboard"], ["agents","Agent Database"],
   ["gallery","Gallery"], ["posters","Posters"], ["contact","Contact"], ["media","Media Library"], ["visibility","Section Visibility"]
 ];
 
@@ -31,6 +31,7 @@ export default function AdminPanel() {
   const [media, setMedia] = useState([]);
   const [contact, setContact] = useState(emptyContact);
   const [sections, setSections] = useState({ home:true, stats:true, missionControl:true, events:true, notifications:true, agents:true, leaderboard:true, gallery:true, posters:true, contact:true });
+  const [stats, setStats] = useState({ communityMembers:0, projectsCompleted:0, workshopsConducted:0, hackathonsOrganised:0 });
   const [event, setEvent] = useState(emptyEvent);
   const [leader, setLeader] = useState(emptyLeaderboard);
   const [agent, setAgent] = useState(emptyAgent);
@@ -63,13 +64,14 @@ export default function AdminPanel() {
     try {
       const { admin: current } = await api.me();
       setAdmin(current);
-      const [e,l,a,g,p,c,settings] = await Promise.all([
+      const [e,l,a,g,p,c,settings,s] = await Promise.all([
         api.events(), api.leaderboard.list(), api.agents.list(), api.gallery.list(), api.posters.list(),
-        api.contact.get(), api.siteSettings.get()
+        api.contact.get(), api.siteSettings.get(), api.stats.get()
       ]);
       setEvents(e); setLeaderboard(l); setAgents(a); setGallery(g); setPosters(p);
       setContact(Object.fromEntries(Object.keys(emptyContact).map((key) => [key, c?.[key] || ""])));
       setSections(settings?.sections || { home:true, stats:true, missionControl:true, events:true, notifications:true, agents:true, leaderboard:true, gallery:true, posters:true, contact:true });
+      setStats({ communityMembers: s?.communityMembers || 0, projectsCompleted: s?.projectsCompleted || 0, workshopsConducted: s?.workshopsConducted || 0, hackathonsOrganised: s?.hackathonsOrganised || 0 });
       if (current.role === "superadmin") setAdmins(await api.admins());
       setMedia(await api.media.list());
     } catch { setAdmin(null); } finally { setLoading(false); }
@@ -286,6 +288,36 @@ export default function AdminPanel() {
             <List items={events} render={(item) => <span><span className="text-[#00D9FF] mr-3">{item.code}</span>{item.title}</span>} onEdit={(item) => edit("events", item)} onDelete={removeEvent} />
           </Section>
         ) : null}
+
+        {tab === "stats" ? <Section title="MANAGE STATS DASHBOARD">
+          <p className="text-xs text-white/40 mb-4">Active Agents and Total XP Earned are calculated automatically from the agent database. Update the other values here.</p>
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            try {
+              const saved = await api.stats.update(stats);
+              setStats({
+                communityMembers: saved.communityMembers || 0,
+                projectsCompleted: saved.projectsCompleted || 0,
+                workshopsConducted: saved.workshopsConducted || 0,
+                hackathonsOrganised: saved.hackathonsOrganised || 0,
+              });
+              setMessage("Stats dashboard updated."); setError("");
+            } catch (e) { fail(e); }
+          }} className="grid md:grid-cols-2 gap-3">
+            {[
+              ["communityMembers","COMMUNITY MEMBERS"],
+              ["projectsCompleted","PROJECTS COMPLETED"],
+              ["workshopsConducted","WORKSHOPS CONDUCTED"],
+              ["hackathonsOrganised","HACKATHONS ORGANISED"],
+            ].map(([key,label]) => (
+              <div key={key}>
+                <label className="block text-[10px] text-white/40 mb-1">{label}</label>
+                <input type="number" min="0" className={inputClass} value={stats[key]} onChange={(e) => setStats({ ...stats, [key]:Number(e.target.value) })} />
+              </div>
+            ))}
+            <button className={buttonClass + " md:col-span-2"} type="submit">Save stats dashboard</button>
+          </form>
+        </Section> : null}
 
         {tab === "leaderboard" ? <Section title="MANAGE LEADERBOARD"><form onSubmit={(e) => { e.preventDefault(); save("leaderboard", leader, () => setLeader(emptyLeaderboard)); }} className="grid md:grid-cols-3 gap-3"><input required className={inputClass} placeholder="NAME" value={leader.name} onChange={(e) => setLeader({ ...leader, name:e.target.value })} /><input className={inputClass} placeholder="CALLSIGN" value={leader.nickname} onChange={(e) => setLeader({ ...leader, nickname:e.target.value })} /><input className={inputClass} placeholder="THREAT CLASS" value={leader.threatClass} onChange={(e) => setLeader({ ...leader, threatClass:e.target.value })} /><input className={inputClass} placeholder="DIVISION" value={leader.division} onChange={(e) => setLeader({ ...leader, division:e.target.value })} /><div>
                 <label className="block text-[10px] text-white/40 mb-1">EXPERIENCE POINTS (XP)</label>
