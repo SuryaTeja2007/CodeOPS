@@ -17,38 +17,58 @@ export default function TerminalTyper() {
     let cancelled = false;
     let charIdx = 0;
     const current = COMMANDS[cmdIdx % COMMANDS.length];
-    const typed = { cmd: "", out: null };
-    setLines((prev) => [...prev, typed]);
 
-    const typeInterval = setInterval(() => {
+    setLines((prev) => [...prev, { cmd: "", out: "" }]);
+
+    const typeCommand = setInterval(() => {
       if (cancelled) return;
       charIdx++;
+
       setLines((prev) => {
         const next = [...prev];
-        next[next.length - 1] = { cmd: current.cmd.slice(0, charIdx), out: null };
+        next[next.length - 1] = {
+          cmd: current.cmd.slice(0, charIdx),
+          out: "",
+        };
         return next;
       });
+
       if (charIdx >= current.cmd.length) {
-        clearInterval(typeInterval);
-        setTimeout(() => {
-          if (cancelled) return;
+        clearInterval(typeCommand);
+
+        let outIdx = 0;
+        const typeOutput = setInterval(() => {
+          if (cancelled) {
+            clearInterval(typeOutput);
+            return;
+          }
+
+          outIdx++;
           setLines((prev) => {
             const next = [...prev];
-            next[next.length - 1] = { cmd: current.cmd, out: current.out };
+            next[next.length - 1] = {
+              cmd: current.cmd,
+              out: current.out.slice(0, outIdx),
+            };
             return next;
           });
-          setTimeout(() => {
-            if (cancelled) return;
-            setLines((prev) => (prev.length > 6 ? prev.slice(1) : prev));
-            setCmdIdx((i) => i + 1);
-          }, 1200);
-        }, 300);
+
+          if (outIdx >= current.out.length) {
+            clearInterval(typeOutput);
+
+            setTimeout(() => {
+              if (cancelled) return;
+              setLines((prev) => (prev.length > 6 ? prev.slice(1) : prev));
+              setCmdIdx((i) => i + 1);
+            }, 1200);
+          }
+        }, 40);
       }
     }, 65);
 
     return () => {
       cancelled = true;
-      clearInterval(typeInterval);
+      clearInterval(typeCommand);
     };
   }, [cmdIdx]);
 
@@ -66,7 +86,7 @@ export default function TerminalTyper() {
             <div style={{ color: "#00FF88" }}>
               <span className="text-white/40">$ </span>
               {l.cmd}
-              {i === lines.length - 1 && !l.out && <span className="cursor-blink">▌</span>}
+              {i === lines.length - 1 && (l.out === "") && <span className="cursor-blink">▌</span>}
             </div>
             {l.out && <div className="text-white/50 pl-2">{l.out}</div>}
           </div>
