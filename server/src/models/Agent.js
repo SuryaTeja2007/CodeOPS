@@ -10,7 +10,6 @@ const agentSchema = new mongoose.Schema(
     github: { type: String, default: "#" },
     linkedin: { type: String, default: "#" },
     portfolio: { type: String, default: "#" },
-    joined: { type: String, default: "" },
     photo: { type: String, default: "" },
   },
   { timestamps: true }
