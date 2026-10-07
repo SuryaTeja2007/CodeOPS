@@ -73,14 +73,14 @@ export default function TerminalTyper() {
   }, [cmdIdx]);
 
   return (
-    <div className="glass rounded-lg p-4 w-full max-w-md h-[390px] overflow-hidden text-xs md:text-sm font-mono box-glow-neon">
+    <div className="glass rounded-lg p-4 w-full max-w-md h-[410px] overflow-hidden text-xs md:text-sm font-mono box-glow-neon">
       <div className="flex gap-1.5 mb-3">
         <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#FF3B3B" }} />
         <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#FFD400" }} />
         <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#00FF88" }} />
         <span className="ml-2 text-white/40">agent@CODEOPS:~</span>
       </div>
-      <div className="space-y-1.5 h-[340px] overflow-hidden">
+      <div className="space-y-1.5 h-[360px] overflow-hidden">
         {lines.map((l, i) => (
           <div key={i}>
             <div style={{ color: "#00FF88" }}>
