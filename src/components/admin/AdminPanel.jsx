@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, ExternalLink, LogIn, LogOut, Plus, Shield, Trash2, Pencil, Upload } from "lucide-react";
+import { ArrowLeft, Download, ExternalLink, LogIn, LogOut, Plus, Shield, Trash2, Pencil, Upload } from "lucide-react";
 import { api, resolveAssetUrl } from "../../lib/api";
 
 const emptyEvent = { code:"", title:"", description:"", venue:"", deadline:"", status:"OPEN", poster:"", registerUrl:"" };
@@ -40,6 +40,7 @@ export default function AdminPanel() {
   const [editing, setEditing] = useState(null);
   const [newAdmin, setNewAdmin] = useState({ username:"", password:"" });
   const [upload, setUpload] = useState({ title:"", kind:"image", file:null });
+  const [agentCsvFile, setAgentCsvFile] = useState(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -164,6 +165,79 @@ export default function AdminPanel() {
     if (!window.confirm("Remove this admin account?")) return;
     try { await api.removeAdmin(id); setAdmins((items) => items.filter((item) => item._id !== id)); setError(""); }
     catch (e) { fail(e); }
+  }
+
+
+  function parseCsv(text) {
+    const rows = [];
+    let row = [], cell = "", quoted = false;
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i], next = text[i + 1];
+      if (char === '"') {
+        if (quoted && next === '"') { cell += '"'; i++; }
+        else quoted = !quoted;
+      } else if (char === "," && !quoted) {
+        row.push(cell); cell = "";
+      } else if ((char === "\n" || char === "\r") && !quoted) {
+        if (char === "\r" && next === "\n") i++;
+        row.push(cell); cell = "";
+        if (row.some((value) => value.trim() !== "")) rows.push(row);
+        row = [];
+      } else {
+        cell += char;
+      }
+    }
+    if (cell || row.length) {
+      row.push(cell);
+      if (row.some((value) => value.trim() !== "")) rows.push(row);
+    }
+    if (rows.length < 2) return [];
+    const headers = rows[0].map((value) => value.trim().replace(/^\uFEFF/, ""));
+    return rows.slice(1).map((values) => Object.fromEntries(headers.map((header, index) => [header, (values[index] || "").trim()])));
+  }
+
+  async function importAgentsCsv() {
+    if (!agentCsvFile) { setError("Choose a CSV file first."); return; }
+    try {
+      const text = await agentCsvFile.text();
+      const rows = parseCsv(text);
+      const agentsToImport = rows.map((row) => ({
+        rollNumber: row.rollNumber || row["ROLL NUMBER"] || "",
+        name: row.name || row.NAME || "",
+        department: row.department || row.DEPARTMENT || "",
+        position: row.position || row.POSITION || "",
+        language: row.language || row.LANGUAGE || "",
+        github: row.github || row["GITHUB URL"] || "",
+        linkedin: row.linkedin || row["LINKEDIN URL"] || "",
+        portfolio: row.portfolio || row["PORTFOLIO URL"] || "",
+        photo: row.photo || row["PROFILE IMAGE"] || "",
+      }));
+      const invalid = agentsToImport.filter((item) => !item.rollNumber.trim() || !item.name.trim());
+      if (invalid.length) {
+        setError("Every CSV row must contain both rollNumber and name.");
+        return;
+      }
+      const result = await api.agents.importCsv(agentsToImport);
+      const refreshed = await api.agents.list();
+      setAgents(refreshed);
+      setAgentCsvFile(null);
+      setMessage(`CSV import complete: ${result.created} added, ${result.ignored} ignored.`);
+      setError("");
+    } catch (e) { fail(e); }
+  }
+
+  function downloadAgentTemplate() {
+    const csv = [
+      "rollNumber,name,department,position,language,github,linkedin,portfolio,photo",
+      "001,John Doe,,,,,,,",
+    ].join("\n");
+    const blob = new Blob([csv], { type:"text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "codeops-agents-template.csv";
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   async function uploadMedia(e) {
@@ -332,7 +406,17 @@ export default function AdminPanel() {
                 <input type="number" min="0" className={inputClass} placeholder="e.g. 81" value={leader.missions} onChange={(e) => setLeader({ ...leader, missions:Number(e.target.value) })} />
               </div><div className="flex gap-2 md:col-span-3"><button className={buttonClass} type="submit">{editing?.resource === "leaderboard" ? "Save" : "Add"} leaderboard entry</button>{editing?.resource === "leaderboard" ? <button type="button" className={secondaryClass} onClick={clearForm}>Cancel</button> : null}</div></form><List items={leaderboard} render={(item) => <span><span className="text-[#00D9FF]">{item.name}</span><span className="text-white/40 ml-3">{item.xp} XP · {item.division}</span></span>} onEdit={(item) => edit("leaderboard", item)} onDelete={(id) => remove("leaderboard", id, setLeaderboard)} /></Section> : null}
 
-        {tab === "agents" ? <Section title="MANAGE AGENT DATABASE"><form onSubmit={(e) => { e.preventDefault(); save("agents", agent, () => setAgent(emptyAgent)); }} className="grid md:grid-cols-3 gap-3">{[["rollNumber","ROLL NUMBER"],["name","NAME"],["department","DEPARTMENT"],["position","POSITION"],["language","LANGUAGE"],["github","GITHUB URL"],["linkedin","LINKEDIN URL"],["portfolio","PORTFOLIO URL"]].map(([key,placeholder]) => <input key={key} className={inputClass} placeholder={placeholder} value={agent[key]} onChange={(e) => setAgent({ ...agent, [key]:e.target.value })} required={["rollNumber","name"].includes(key)} />)}<div className="md:col-span-3">{mediaSelect(agent.photo, (value) => setAgent({ ...agent, photo:value }), "PROFILE IMAGE", true)}</div><div className="flex gap-2 md:col-span-3"><button className={buttonClass} type="submit">{editing?.resource === "agents" ? "Save" : "Add"} agent</button>{editing?.resource === "agents" ? <button type="button" className={secondaryClass} onClick={clearForm}>Cancel</button> : null}</div></form><List items={agents} render={(item) => <span><span className="text-[#00D9FF]">{item.rollNumber}</span><span className="ml-3">{item.name}</span></span>} onEdit={(item) => edit("agents", item)} onDelete={(id) => remove("agents", id, setAgents)} /></Section> : null}
+        {tab === "agents" ? <Section title="MANAGE AGENT DATABASE">
+            <div className="flex flex-wrap gap-2 mb-5">
+              <div className="flex flex-wrap items-center gap-2">
+                <input type="file" accept=".csv,text/csv" id="agent-csv-upload" className="hidden" onChange={(e) => setAgentCsvFile(e.target.files?.[0] || null)} />
+                <label htmlFor="agent-csv-upload" className={secondaryClass + " cursor-pointer"}><Upload size={14} />{agentCsvFile ? agentCsvFile.name : "Choose agents CSV"}</label>
+                <button type="button" className={buttonClass} onClick={importAgentsCsv}><Upload size={14} />Import CSV</button>
+              </div>
+              <button type="button" className={secondaryClass} onClick={downloadAgentTemplate}><Download size={14} />Download CSV template</button>
+            </div>
+            <p className="text-[10px] text-white/30 mb-4">Required CSV columns: <span className="text-white/60">rollNumber</span> and <span className="text-white/60">name</span>. All other columns are optional. Existing roll numbers are ignored.</p>
+            <form onSubmit={(e) => { e.preventDefault(); save("agents", agent, () => setAgent(emptyAgent)); }} className="grid md:grid-cols-3 gap-3">{[["rollNumber","ROLL NUMBER"],["name","NAME"],["department","DEPARTMENT"],["position","POSITION"],["language","LANGUAGE"],["github","GITHUB URL"],["linkedin","LINKEDIN URL"],["portfolio","PORTFOLIO URL"]].map(([key,placeholder]) => <input key={key} className={inputClass} placeholder={placeholder} value={agent[key]} onChange={(e) => setAgent({ ...agent, [key]:e.target.value })} required={["rollNumber","name"].includes(key)} />)}<div className="md:col-span-3">{mediaSelect(agent.photo, (value) => setAgent({ ...agent, photo:value }), "PROFILE IMAGE", true)}</div><div className="flex gap-2 md:col-span-3"><button className={buttonClass} type="submit">{editing?.resource === "agents" ? "Save" : "Add"} agent</button>{editing?.resource === "agents" ? <button type="button" className={secondaryClass} onClick={clearForm}>Cancel</button> : null}</div></form><List items={agents} render={(item) => <span><span className="text-[#00D9FF]">{item.rollNumber}</span><span className="ml-3">{item.name}</span></span>} onEdit={(item) => edit("agents", item)} onDelete={(id) => remove("agents", id, setAgents)} /></Section> : null}
 
         {tab === "gallery" ? <Section title="MANAGE GALLERY"><form onSubmit={(e) => { e.preventDefault(); save("gallery", galleryItem, () => setGalleryItem(emptyGallery)); }} className="grid md:grid-cols-2 gap-3"><input className={inputClass} placeholder="TITLE (optional)" value={galleryItem.title} onChange={(e) => setGalleryItem({ ...galleryItem, title:e.target.value })} /><input required className={inputClass} placeholder="CATEGORY" value={galleryItem.category} onChange={(e) => setGalleryItem({ ...galleryItem, category:e.target.value })} /><div className="md:col-span-2">{mediaSelect(galleryItem.img, (value) => setGalleryItem({ ...galleryItem, img:value }), "GALLERY IMAGE", true)}</div><div className="flex gap-2 md:col-span-2"><button className={buttonClass} type="submit">{editing?.resource === "gallery" ? "Save" : "Add"} gallery image</button>{editing?.resource === "gallery" ? <button type="button" className={secondaryClass} onClick={clearForm}>Cancel</button> : null}</div></form><List items={gallery} render={(item) => <span><span className="text-[#00D9FF]">{item.category}</span><span className="ml-3">{item.title || "Untitled image"}</span></span>} onEdit={(item) => edit("gallery", item)} onDelete={(id) => remove("gallery", id, setGallery)} /></Section> : null}
 
