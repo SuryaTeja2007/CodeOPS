@@ -74,8 +74,22 @@ function crud(Model, sort = { createdAt: -1 }) {
 
 router.get("/event", async (_req, res) => {
   const now = new Date();
+
   // OPEN events automatically become ONGOING when their countdown reaches zero.
-  await Event.updateMany({ status: "OPEN", deadline: { $lte: now } }, { $set: { status: "ONGOING" } });
+  await Event.updateMany(
+    { status: "OPEN", deadline: { $lte: now } },
+    { $set: { status: "ONGOING", ongoingSince: now } }
+  );
+
+  // Any event that has been ONGOING for 24 hours automatically closes.
+  await Event.updateMany(
+    {
+      status: "ONGOING",
+      ongoingSince: { $ne: null, $lte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
+    },
+    { $set: { status: "CLOSED" } }
+  );
+
   res.json(await Event.find().sort({ createdAt: -1 }));
 });
 
@@ -87,6 +101,8 @@ router.post("/event", requireAuth, upload.single("poster"), async (req, res) => 
       req.body.poster = url;
     }
     if (!req.body.code?.trim()) req.body.code = await nextEventCode();
+    if (req.body.status === "ONGOING") req.body.ongoingSince = new Date();
+    else if (req.body.status !== "CLOSED") req.body.ongoingSince = null;
     const item = await Event.create(req.body);
     res.status(201).json(item);
   } catch (e) { res.status(400).json({ message: e.message }); }
@@ -104,6 +120,15 @@ router.put("/event/:id", requireAuth, upload.single("poster"), async (req, res) 
       delete req.body.poster;
     }
     if (!req.body.code?.trim()) req.body.code = await nextEventCode();
+
+    if (req.body.status === "ONGOING") {
+      const existing = await Event.findById(req.params.id).select("status ongoingSince");
+      if (existing?.status !== "ONGOING") req.body.ongoingSince = new Date();
+      else if (!existing.ongoingSince) req.body.ongoingSince = new Date();
+    } else if (req.body.status && req.body.status !== "ONGOING") {
+      req.body.ongoingSince = null;
+    }
+
     const item = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!item) return res.status(404).json({ message: "Not found" });
     res.json(item);
