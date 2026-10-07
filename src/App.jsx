@@ -27,6 +27,7 @@ export default function App() {
   });
   const [sections, setSections] = useState({ home:true, stats:true, missionControl:true, events:true, notifications:true, agents:true, leaderboard:true, gallery:true, posters:true, contact:true });
   const [admin, setAdmin] = useState(null);
+  const [audioMuted, setAudioMuted] = useState(true);
   const isAdminRoute = window.location.pathname === "/admin";
 
   useEffect(() => {
@@ -37,13 +38,39 @@ export default function App() {
 
   useEffect(() => () => audioRef.current?.pause(), []);
 
-  const handleAudioChoice = (enabled) => {
-    if (!enabled) return;
+  const startAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.muted = false;
+      audioRef.current.play().catch(() => {});
+      setAudioMuted(false);
+      return;
+    }
+
     const audio = new Audio("/bgm1.mp3");
     audio.loop = true;
     audio.volume = 0.35;
     audioRef.current = audio;
-    audio.play().catch(() => { audioRef.current = null; });
+    audio.play().then(() => setAudioMuted(false)).catch(() => {
+      audioRef.current = null;
+      setAudioMuted(true);
+    });
+  };
+
+  const handleAudioChoice = (enabled) => {
+    if (enabled) {
+      startAudio();
+    } else {
+      setAudioMuted(true);
+    }
+  };
+
+  const handleAudioToggle = () => {
+    if (audioMuted) {
+      startAudio();
+    } else if (audioRef.current) {
+      audioRef.current.muted = true;
+      setAudioMuted(true);
+    }
   };
 
   useEffect(() => {
@@ -59,7 +86,7 @@ export default function App() {
       <div className="fixed inset-0 opacity-25 pointer-events-none z-0">
         <MatrixRain />
       </div>
-      <Navbar sections={sections} admin={admin} onLogout={() => setAdmin(null)} />
+      <Navbar sections={sections} admin={admin} onLogout={() => setAdmin(null)} audioMuted={audioMuted} onAudioToggle={handleAudioToggle} />
       <main>
         <AdminManagedSection sectionKey="home" label="Home" visible={sections.home} admin={admin} sections={sections} setSections={setSections}>
           <Home />
