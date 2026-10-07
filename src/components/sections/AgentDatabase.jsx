@@ -16,5 +16,37 @@ function Field({label,value,className=""}){return <div className={className}><di
 export default function AgentDatabase(){
  const [agents,setAgents]=useState(fallback); const [selected,setSelected]=useState(null);
  useEffect(()=>{api.agents.list().then(setAgents).catch(()=>{});},[]);
- return <section id="agents" className="relative py-24 px-4 md:px-8 bg-[#070707]"><div className="max-w-7xl mx-auto"><Reveal><SectionHeading title="Agent Database"/></Reveal><div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">{agents.map((agent,i)=>{return <Reveal key={agent._id||agent.id||i} delay={i*0.05}><GlowCard className="text-center"><img src={resolveAssetUrl(agent.photo)} alt={agent.name} className="w-16 h-16 rounded-full mx-auto mb-3 border-2 object-cover" /><div className="font-mono text-[10px] text-white/40">ROLL NO: {agent.rollNumber}</div><h3 className="font-display text-sm text-[#00FF88] mt-1">{agent.name}</h3><div className="text-[10px] mt-2 text-white/40">{agent.department}</div><button onClick={()=>setSelected(agent)} className="mt-4 w-full py-2 rounded-md border border-[#00FF88]/40 text-[#00FF88] text-[11px] font-mono uppercase tracking-wider hover:bg-[#00FF88]/10 transition">View Dossier</button></GlowCard></Reveal>})}</div></div><AgentModal agent={selected} onClose={()=>setSelected(null)}/></section>;
+
+ const positionRank = (value) => {
+  const p = String(value || "").trim().toLowerCase();
+  if (p === "president") return 0;
+  if (["vice president", "vice-president", "vide-president"].includes(p)) return 1;
+  if (["treasurer", "treasurers"].includes(p)) return 2;
+  if (/^wing admin\s+[a-z]\d+$/i.test(p)) return 3;
+  if (["website handler", "website handlers"].includes(p)) return 4;
+  if (["content creator", "content creators"].includes(p)) return 5;
+  if (["social media handler", "social media handlers"].includes(p)) return 6;
+  if (["photographer", "photographers"].includes(p)) return 7;
+  return 99;
+ };
+ const defaultSort = (a,b) => {
+  const ar=positionRank(a.position), br=positionRank(b.position);
+  if(ar!==br) return ar-br;
+  if(ar===3){
+   const wing=(value)=>{const m=String(value||"").match(/^wing admin\s+([a-z])(\d+)$/i);return m ? m[1].toUpperCase()+String(m[2]).padStart(4,"0") : "";};
+   const aw=wing(a.position),bw=wing(b.position);
+   if(aw!==bw) return aw.localeCompare(bw,undefined,{numeric:true});
+  }
+  return String(a.rollNumber||"").localeCompare(String(b.rollNumber||""),undefined,{numeric:true,sensitivity:"base"});
+ };
+ const hasCustomOrder=agents.some((agent)=>Number.isFinite(agent.displayOrder));
+ const orderedAgents=[...agents].sort((a,b)=>{
+  if(hasCustomOrder){
+   const ao=Number.isFinite(a.displayOrder)?a.displayOrder:Number.MAX_SAFE_INTEGER;
+   const bo=Number.isFinite(b.displayOrder)?b.displayOrder:Number.MAX_SAFE_INTEGER;
+   if(ao!==bo) return ao-bo;
+  }
+  return defaultSort(a,b);
+ });
+ return <section id="agents" className="relative py-24 px-4 md:px-8 bg-[#070707]"><div className="max-w-7xl mx-auto"><Reveal><SectionHeading title="Agent Database"/></Reveal><div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">{orderedAgents.map((agent,i)=>{return <Reveal key={agent._id||agent.id||i} delay={i*0.05}><GlowCard className="text-center"><img src={resolveAssetUrl(agent.photo)} alt={agent.name} className="w-16 h-16 rounded-full mx-auto mb-3 border-2 object-cover" /><div className="font-mono text-[10px] text-white/40">ROLL NO: {agent.rollNumber}</div><h3 className="font-display text-sm text-[#00FF88] mt-1">{agent.name}</h3><div className="text-[10px] mt-2 text-white/40">{agent.department}</div><button onClick={()=>setSelected(agent)} className="mt-4 w-full py-2 rounded-md border border-[#00FF88]/40 text-[#00FF88] text-[11px] font-mono uppercase tracking-wider hover:bg-[#00FF88]/10 transition">View Dossier</button></GlowCard></Reveal>})}</div></div><AgentModal agent={selected} onClose={()=>setSelected(null)}/></section>;
 }
