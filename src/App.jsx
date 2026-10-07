@@ -149,6 +149,13 @@ function AdminManagedSection({ sectionKey, label, visible, admin, sections, setS
         />
       ) : null}
       <div className={isHiddenForPublic ? "grayscale opacity-40" : ""}>
+        {isHiddenForPublic ? (
+          <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+            <div className="border border-[#FF3B3B]/50 bg-black/80 px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-[#FF3B3B] shadow-[0_0_15px_rgba(255,59,59,0.15)]">
+              Not visible to public
+            </div>
+          </div>
+        ) : null}
         {children}
       </div>
     </div>
