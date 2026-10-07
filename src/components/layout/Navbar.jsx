@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-scroll";
-import { Menu, X, Terminal } from "lucide-react";
+import { Menu, X, Terminal, Volume2, VolumeX } from "lucide-react";
 import { navLinks } from "../../data/misc";
 import { api } from "../../lib/api";
 
