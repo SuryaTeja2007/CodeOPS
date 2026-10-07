@@ -13,7 +13,7 @@ const EMPTY_STATS = {
 };
 
 const STAT_FIELDS = [
-  ["activeAgents", "Active Agents"],
+  ["activeAgents", "Total Agents"],
   ["communityMembers", "Community Members"],
   ["projectsCompleted", "Projects Completed"],
   ["workshopsConducted", "Workshops Conducted"],
