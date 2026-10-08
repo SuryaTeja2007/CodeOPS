@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AlertTriangle, Bell, Zap, Cpu, RefreshCw } from "lucide-react";
 import SectionHeading from "../ui/SectionHeading";
 import Reveal from "../ui/Reveal";
@@ -13,7 +13,27 @@ const ICONS = {
   SYSTEM: Cpu,
 };
 
+function formatTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const diff = Math.max(0, Date.now() - date.getTime());
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 60) return `${Math.max(1, minutes)}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
 export default function AlertConsole() {
+  const [alerts, setAlerts] = useState(fallbackAlerts);
+
+  useEffect(() => {
+    api.alerts?.list().then((items) => {
+      if (Array.isArray(items) && items.length) setAlerts(items);
+    }).catch(() => {});
+  }, []);
+
   return (
     <section id="notifications" className="relative py-24 px-4 md:px-8">
       <div className="max-w-4xl mx-auto">
@@ -24,7 +44,7 @@ export default function AlertConsole() {
           {alerts.map((a, i) => {
             const Icon = ICONS[a.type] || Bell;
             return (
-              <Reveal key={a.id} delay={i * 0.06}>
+              <Reveal key={a._id || a.id || `${a.type}-${i}`} delay={i * 0.06}>
                 <div className="flex items-center gap-4 p-4">
                   <div className="w-9 h-9 rounded-md flex items-center justify-center shrink-0 bg-[#FF3B3B]/10 text-[#FF3B3B]">
                     <Icon size={16} />
