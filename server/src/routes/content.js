@@ -31,11 +31,18 @@ const upload = multer({
 const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || "codeops-media";
 async function uploadToStorage(file) {
   const storagePath = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}-${path.basename(file.originalname).replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-  const buffer = await readFile(file.path);
-  const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(storagePath, buffer, { contentType: file.mimetype, upsert: false });
-  if (error) throw error;
-  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(storagePath);
-  return { storagePath, url: data.publicUrl };
+  try {
+    const buffer = await readFile(file.path);
+    const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(storagePath, buffer, {
+      contentType: file.mimetype,
+      upsert: false,
+    });
+    if (error) throw error;
+    const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(storagePath);
+    return { storagePath, url: data.publicUrl };
+  } finally {
+    await fs.promises.rm(file.path, { force: true }).catch(() => {});
+  }
 }
 async function deleteFromStorage(url) {
   const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`;
