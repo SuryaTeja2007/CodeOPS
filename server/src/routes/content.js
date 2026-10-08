@@ -1,13 +1,5 @@
 import { Router } from "express";
-import Event from "../models/Event.js";
-import Alert from "../models/Alert.js";
-import Leaderboard from "../models/Leaderboard.js";
-import Stats from "../models/Stats.js";
-import Agent from "../models/Agent.js";
-import Gallery from "../models/Gallery.js";
-import Poster from "../models/Poster.js";
-import Media from "../models/Media.js";
-import Contact from "../models/Contact.js";
+import supabase, { toCamel, toCamelRows } from "../config/supabase.js";
 import { requireAuth } from "../middleware/auth.js";
 import multer from "multer";
 import path from "node:path";
@@ -37,70 +29,115 @@ const upload = multer({
 
 const publicUrl = (file) => `/uploads/${file.filename}`;
 
+const TABLES = {
+  alert: "alerts",
+  leaderboard: "leaderboard",
+  agent: "agents",
+  gallery: "gallery",
+  poster: "posters",
+};
+
+function cleanAgent(row) {
+  return {
+    roll_number: String(row?.rollNumber || "").trim(),
+    name: String(row?.name || "").trim(),
+    department: String(row?.department || "").trim(),
+    position: String(row?.position || "").trim(),
+    language: String(row?.language || "").trim(),
+    github: String(row?.github || "").trim() || "#",
+    linkedin: String(row?.linkedin || "").trim() || "#",
+    portfolio: String(row?.portfolio || "").trim() || "#",
+    photo: String(row?.photo || "").trim(),
+  };
+}
+
 async function nextEventCode() {
-  const events = await Event.find({ code: /^CO-\d+$/ }).select("code").lean();
-  const used = new Set(events.map((item) => Number(item.code.slice(3))));
+  const { data, error } = await supabase.from("events").select("code").like("code", "CO-%");
+  if (error) throw error;
+  const used = new Set((data || []).map((item) => Number(String(item.code).slice(3))));
   let n = 1;
   while (used.has(n)) n += 1;
   return `CO-${String(n).padStart(3, "0")}`;
 }
 
-function crud(Model, sort = { createdAt: -1 }) {
-  const name = Model.modelName.toLowerCase();
-
-  router.get(`/${name}`, async (_req, res) => {
-    res.json(await Model.find().sort(sort));
+function crud(table, sortColumn = "created_at", ascending = false) {
+  router.get(`/${table === "alerts" ? "alert" : table}`, async (_req, res) => {
+    const { data, error } = await supabase.from(table).select("*").order(sortColumn, { ascending });
+    if (error) return res.status(500).json({ message: error.message });
+    res.json(toCamelRows(data));
   });
 
-  router.post(`/${name}`, requireAuth, async (req, res) => {
-    try { res.status(201).json(await Model.create(req.body)); }
-    catch (e) { res.status(400).json({ message: e.message }); }
-  });
-
-  router.put(`/${name}/:id`, requireAuth, async (req, res) => {
+  router.post(`/${table === "alerts" ? "alert" : table}`, requireAuth, async (req, res) => {
     try {
-      const item = await Model.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-      if (!item) return res.status(404).json({ message: "Not found" });
-      res.json(item);
-    } catch (e) { res.status(400).json({ message: e.message }); }
+      const { data, error } = await supabase.from(table).insert(req.body).select("*").single();
+      if (error) throw error;
+      res.status(201).json(toCamel(data));
+    } catch (e) {
+      res.status(400).json({ message: e.message });
+    }
   });
 
-  router.delete(`/${name}/:id`, requireAuth, async (req, res) => {
-    const item = await Model.findByIdAndDelete(req.params.id);
-    if (!item) return res.status(404).json({ message: "Not found" });
+  router.put(`/${table === "alerts" ? "alert" : table}/:id`, requireAuth, async (req, res) => {
+    try {
+      const { data, error } = await supabase.from(table).update(req.body).eq("id", req.params.id).select("*").maybeSingle();
+      if (error) throw error;
+      if (!data) return res.status(404).json({ message: "Not found" });
+      res.json(toCamel(data));
+    } catch (e) {
+      res.status(400).json({ message: e.message });
+    }
+  });
+
+  router.delete(`/${table === "alerts" ? "alert" : table}/:id`, requireAuth, async (req, res) => {
+    const { data, error } = await supabase.from(table).delete().eq("id", req.params.id).select("id").maybeSingle();
+    if (error) return res.status(400).json({ message: error.message });
+    if (!data) return res.status(404).json({ message: "Not found" });
     res.json({ message: "Deleted" });
   });
 }
 
 router.get("/event", async (_req, res) => {
-  const now = new Date();
+  try {
+    const now = new Date();
+    const { data: events, error } = await supabase.from("events").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
 
-  // OPEN events automatically become ONGOING when their countdown reaches zero.
-  await Event.updateMany(
-    { status: "OPEN", deadline: { $lte: now } },
-    { $set: { status: "ONGOING", ongoingSince: now } }
-  );
+    for (const event of events || []) {
+      if (event.status === "OPEN" && new Date(event.deadline) <= now) {
+        const { error: updateError } = await supabase.from("events").update({
+          status: "ONGOING",
+          ongoing_since: now.toISOString(),
+        }).eq("id", event.id);
+        if (updateError) throw updateError;
+        event.status = "ONGOING";
+        event.ongoing_since = now.toISOString();
+      } else if (
+        event.status === "ONGOING" &&
+        event.ongoing_since &&
+        new Date(event.ongoing_since) <= new Date(now.getTime() - 24 * 60 * 60 * 1000)
+      ) {
+        const { error: updateError } = await supabase.from("events").update({ status: "CLOSED" }).eq("id", event.id);
+        if (updateError) throw updateError;
+        event.status = "CLOSED";
+      }
+    }
 
-  // Any event that has been ONGOING for 24 hours automatically closes.
-  await Event.updateMany(
-    {
-      status: "ONGOING",
-      ongoingSince: { $ne: null, $lte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
-    },
-    { $set: { status: "CLOSED" } }
-  );
-
-  res.json(await Event.find().sort({ createdAt: -1 }));
+    res.json(toCamelRows(events));
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
 });
 
 router.put("/agents/reorder", requireAuth, async (req, res) => {
   try {
     const order = Array.isArray(req.body?.order) ? req.body.order : [];
-    const operations = order.map((id, index) => ({
-      updateOne: { filter: { _id: id }, update: { $set: { displayOrder: index } } },
-    }));
-    if (operations.length) await Agent.bulkWrite(operations);
-    res.json(await Agent.find().sort({ displayOrder: 1, createdAt: 1 }));
+    for (let index = 0; index < order.length; index += 1) {
+      const { error } = await supabase.from("agents").update({ display_order: index }).eq("id", order[index]);
+      if (error) throw error;
+    }
+    const { data, error } = await supabase.from("agents").select("*").order("display_order", { ascending: true, nullsFirst: false }).order("created_at", { ascending: true });
+    if (error) throw error;
+    res.json(toCamelRows(data));
   } catch (e) {
     res.status(400).json({ message: e.message });
   }
@@ -109,7 +146,6 @@ router.put("/agents/reorder", requireAuth, async (req, res) => {
 router.post("/agents/import", requireAuth, async (req, res) => {
   try {
     if (!Array.isArray(req.body?.agents)) return res.status(400).json({ message: "agents must be an array" });
-
     const rows = req.body.agents;
     const valid = [];
     const seen = new Set();
@@ -118,37 +154,27 @@ router.post("/agents/import", requireAuth, async (req, res) => {
       const rollNumber = String(row?.rollNumber || "").trim();
       const name = String(row?.name || "").trim();
       if (!rollNumber || !name) continue;
-
       const key = rollNumber.toLowerCase();
       if (seen.has(key)) continue;
       seen.add(key);
-
-      valid.push({
-        rollNumber,
-        name,
-        department: String(row?.department || "").trim(),
-        position: String(row?.position || "").trim(),
-        language: String(row?.language || "").trim(),
-        github: String(row?.github || "").trim() || "#",
-        linkedin: String(row?.linkedin || "").trim() || "#",
-        portfolio: String(row?.portfolio || "").trim() || "#",
-        photo: String(row?.photo || "").trim(),
-      });
+      valid.push(cleanAgent(row));
     }
 
-    const existing = await Agent.find({
-      rollNumber: { $in: valid.map((item) => item.rollNumber) },
-    }).select("rollNumber").lean();
+    if (!valid.length) return res.status(201).json({ created: 0, ignored: rows.length });
 
-    const existingRollNumbers = new Set(existing.map((item) => item.rollNumber.toLowerCase()));
-    const toCreate = valid.filter((item) => !existingRollNumbers.has(item.rollNumber.toLowerCase()));
+    const { data: existing, error: existingError } = await supabase
+      .from("agents").select("roll_number").in("roll_number", valid.map((item) => item.roll_number));
+    if (existingError) throw existingError;
 
-    if (toCreate.length) await Agent.insertMany(toCreate, { ordered: false });
+    const existingRollNumbers = new Set((existing || []).map((item) => item.roll_number.toLowerCase()));
+    const toCreate = valid.filter((item) => !existingRollNumbers.has(item.roll_number.toLowerCase()));
 
-    res.status(201).json({
-      created: toCreate.length,
-      ignored: rows.length - toCreate.length,
-    });
+    if (toCreate.length) {
+      const { error } = await supabase.from("agents").insert(toCreate);
+      if (error) throw error;
+    }
+
+    res.status(201).json({ created: toCreate.length, ignored: rows.length - toCreate.length });
   } catch (e) {
     res.status(400).json({ message: e.message });
   }
@@ -158,128 +184,188 @@ router.post("/event", requireAuth, upload.single("poster"), async (req, res) => 
   try {
     if (req.file) {
       const url = publicUrl(req.file);
-      await Media.create({ title: req.body.title || req.file.originalname, url, kind: "poster" });
+      await supabase.from("media").insert({ title: req.body.title || req.file.originalname, url, kind: "poster" });
       req.body.poster = url;
     }
     if (!req.body.code?.trim()) req.body.code = await nextEventCode();
-    if (req.body.status === "ONGOING") req.body.ongoingSince = new Date();
-    else if (req.body.status !== "CLOSED") req.body.ongoingSince = null;
-    const item = await Event.create(req.body);
-    res.status(201).json(item);
-  } catch (e) { res.status(400).json({ message: e.message }); }
+
+    const payload = {
+      code: req.body.code.trim(),
+      title: req.body.title,
+      poster: req.body.poster || "",
+      description: req.body.description,
+      venue: req.body.venue,
+      deadline: req.body.deadline,
+      status: req.body.status || "OPEN",
+      ongoing_since: req.body.status === "ONGOING" ? new Date().toISOString() : null,
+      register_url: req.body.registerUrl || "",
+    };
+    const { data, error } = await supabase.from("events").insert(payload).select("*").single();
+    if (error) throw error;
+    res.status(201).json(toCamel(data));
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
 });
 
 router.put("/event/:id", requireAuth, upload.single("poster"), async (req, res) => {
   try {
     if (req.file) {
       const url = publicUrl(req.file);
-      await Media.create({ title: req.body.title || req.file.originalname, url, kind: "poster" });
+      await supabase.from("media").insert({ title: req.body.title || req.file.originalname, url, kind: "poster" });
       req.body.poster = url;
     }
-    // Keep the poster when the edit uses a media-library URL instead of a new file.
-    if (!req.file && !req.body.poster) {
-      delete req.body.poster;
-    }
+    if (!req.file && !req.body.poster) delete req.body.poster;
     if (!req.body.code?.trim()) req.body.code = await nextEventCode();
 
+    const { data: existing, error: existingError } = await supabase.from("events").select("status, ongoing_since").eq("id", req.params.id).maybeSingle();
+    if (existingError) throw existingError;
+    if (!existing) return res.status(404).json({ message: "Not found" });
+
+    const payload = {
+      ...(req.body.code ? { code: req.body.code.trim() } : {}),
+      ...(req.body.title !== undefined ? { title: req.body.title } : {}),
+      ...(req.body.poster !== undefined ? { poster: req.body.poster } : {}),
+      ...(req.body.description !== undefined ? { description: req.body.description } : {}),
+      ...(req.body.venue !== undefined ? { venue: req.body.venue } : {}),
+      ...(req.body.deadline !== undefined ? { deadline: req.body.deadline } : {}),
+      ...(req.body.status !== undefined ? { status: req.body.status } : {}),
+      ...(req.body.registerUrl !== undefined ? { register_url: req.body.registerUrl } : {}),
+    };
+
     if (req.body.status === "ONGOING") {
-      const existing = await Event.findById(req.params.id).select("status ongoingSince");
-      if (existing?.status !== "ONGOING") req.body.ongoingSince = new Date();
-      else if (!existing.ongoingSince) req.body.ongoingSince = new Date();
+      payload.ongoing_since = existing.status !== "ONGOING" || !existing.ongoing_since
+        ? new Date().toISOString()
+        : existing.ongoing_since;
     } else if (req.body.status && req.body.status !== "ONGOING") {
-      req.body.ongoingSince = null;
+      payload.ongoing_since = null;
     }
 
-    const item = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    if (!item) return res.status(404).json({ message: "Not found" });
-    res.json(item);
-  } catch (e) { res.status(400).json({ message: e.message }); }
+    const { data, error } = await supabase.from("events").update(payload).eq("id", req.params.id).select("*").single();
+    if (error) throw error;
+    res.json(toCamel(data));
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
 });
 
 router.delete("/event/:id", requireAuth, async (req, res) => {
-  const item = await Event.findByIdAndDelete(req.params.id);
-  if (!item) return res.status(404).json({ message: "Not found" });
+  const { data, error } = await supabase.from("events").delete().eq("id", req.params.id).select("id").maybeSingle();
+  if (error) return res.status(400).json({ message: error.message });
+  if (!data) return res.status(404).json({ message: "Not found" });
   res.json({ message: "Deleted" });
 });
 
-crud(Alert);
-crud(Leaderboard, { xp: -1 });
-crud(Agent);
-crud(Gallery);
-crud(Poster);
+crud("alerts");
+crud("leaderboard", "xp", false);
+crud("agents");
+crud("gallery");
+crud("posters");
 
 router.get("/contact", async (_req, res) => {
-  const contact = await Contact.findOne();
-  res.json(contact || {});
+  const { data, error } = await supabase.from("contact").select("*").limit(1).maybeSingle();
+  if (error) return res.status(500).json({ message: error.message });
+  res.json(toCamel(data) || {});
 });
 
 router.put("/contact", requireAuth, async (req, res) => {
   try {
-    const contact = await Contact.findOneAndUpdate({}, req.body, { new: true, upsert: true, runValidators: true });
-    res.json(contact);
-  } catch (e) { res.status(400).json({ message: e.message }); }
+    const { data: existing, error: existingError } = await supabase.from("contact").select("id").limit(1).maybeSingle();
+    if (existingError) throw existingError;
+    const { data, error } = existing
+      ? await supabase.from("contact").update(req.body).eq("id", existing.id).select("*").single()
+      : await supabase.from("contact").insert(req.body).select("*").single();
+    if (error) throw error;
+    res.json(toCamel(data));
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
 });
 
 router.get("/media", requireAuth, async (_req, res) => {
-  res.json(await Media.find().sort({ createdAt: -1 }));
+  const { data, error } = await supabase.from("media").select("*").order("created_at", { ascending: false });
+  if (error) return res.status(500).json({ message: error.message });
+  res.json(toCamelRows(data));
 });
 
 router.post("/media", requireAuth, upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "Image file is required" });
-    const media = await Media.create({
+    const { data, error } = await supabase.from("media").insert({
       title: req.body.title || req.file.originalname,
       url: publicUrl(req.file),
       kind: req.body.kind === "poster" ? "poster" : "image",
-    });
-    res.status(201).json(media);
-  } catch (e) { res.status(400).json({ message: e.message }); }
+    }).select("*").single();
+    if (error) throw error;
+    res.status(201).json(toCamel(data));
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
 });
 
 router.delete("/media/:id", requireAuth, async (req, res) => {
-  const media = await Media.findById(req.params.id);
+  const { data: media, error: mediaError } = await supabase.from("media").select("*").eq("id", req.params.id).maybeSingle();
+  if (mediaError) return res.status(400).json({ message: mediaError.message });
   if (!media) return res.status(404).json({ message: "Not found" });
 
   const [event, gallery, poster, agent] = await Promise.all([
-    Event.exists({ poster: media.url }),
-    Gallery.exists({ img: media.url }),
-    Poster.exists({ img: media.url }),
-    Agent.exists({ photo: media.url }),
+    supabase.from("events").select("id").eq("poster", media.url).limit(1),
+    supabase.from("gallery").select("id").eq("img", media.url).limit(1),
+    supabase.from("posters").select("id").eq("img", media.url).limit(1),
+    supabase.from("agents").select("id").eq("photo", media.url).limit(1),
   ]);
-  if (event || gallery || poster || agent) {
+  if (event.error || gallery.error || poster.error || agent.error) {
+    return res.status(400).json({ message: "Could not verify media references" });
+  }
+  if (event.data?.length || gallery.data?.length || poster.data?.length || agent.data?.length) {
     return res.status(409).json({ message: "This media is still in use. Reassign it before deleting." });
   }
 
-  await Media.findByIdAndDelete(req.params.id);
+  const { error } = await supabase.from("media").delete().eq("id", req.params.id);
+  if (error) return res.status(400).json({ message: error.message });
   if (media.url.startsWith("/uploads/")) {
-    const filename = path.basename(media.url);
-    fs.rm(path.join(uploadDir, filename), { force: true }, () => {});
+    fs.rm(path.join(uploadDir, path.basename(media.url)), { force: true }, () => {});
   }
   res.json({ message: "Deleted" });
 });
 
 router.get("/stats", async (_req, res) => {
-  const [stats, totalAgents, totalXp] = await Promise.all([
-    Stats.findOne().sort({ updatedAt: -1 }).lean(),
-    Agent.countDocuments(),
-    Agent.aggregate([{ $group: { _id: null, total: { $sum: "$xp" } } }]),
+  const [{ data: stats }, { count: totalAgents }, { data: leaderboard }] = await Promise.all([
+    supabase.from("stats").select("*").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("agents").select("id", { count: "exact", head: true }),
+    supabase.from("leaderboard").select("xp"),
   ]);
+  const totalXpEarned = (leaderboard || []).reduce((sum, item) => sum + Number(item.xp || 0), 0);
 
   res.json({
-    activeAgents: totalAgents,
-    communityMembers: stats?.communityMembers || 0,
-    projectsCompleted: stats?.projectsCompleted || 0,
-    workshopsConducted: stats?.workshopsConducted || 0,
-    hackathonsOrganised: stats?.hackathonsOrganised || 0,
-    totalXpEarned: totalXp[0]?.total || 0,
+    activeAgents: totalAgents || 0,
+    communityMembers: stats?.community_members || 0,
+    projectsCompleted: stats?.projects_completed || 0,
+    workshopsConducted: stats?.workshops_conducted || 0,
+    hackathonsOrganised: stats?.hackathons_organised || 0,
+    totalXpEarned,
   });
 });
 
 router.put("/stats", requireAuth, async (req, res) => {
   try {
-    const stats = await Stats.findOneAndUpdate({}, req.body, { new: true, upsert: true, runValidators: true });
-    res.json(stats);
-  } catch (e) { res.status(400).json({ message: e.message }); }
+    const { data: existing } = await supabase.from("stats").select("id").limit(1).maybeSingle();
+    const payload = {
+      active_agents: Number(req.body.activeAgents ?? 0),
+      community_members: Number(req.body.communityMembers ?? 0),
+      projects_completed: Number(req.body.projectsCompleted ?? 0),
+      workshops_conducted: Number(req.body.workshopsConducted ?? 0),
+      hackathons_organised: Number(req.body.hackathonsOrganised ?? 0),
+    };
+    const query = existing
+      ? supabase.from("stats").update(payload).eq("id", existing.id)
+      : supabase.from("stats").insert(payload);
+    const { data, error } = await query.select("*").single();
+    if (error) throw error;
+    res.json(toCamel(data));
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
 });
 
 export default router;

@@ -1,14 +1,8 @@
 import "dotenv/config";
-import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
-import Admin from "../models/Admin.js";
-
-if (!process.env.MONGODB_URI) {
-  console.error("Set MONGODB_URI in server/.env first.");
-  process.exit(1);
-}
+import supabase from "../config/supabase.js";
 
 const rl = readline.createInterface({ input, output });
 
@@ -16,24 +10,22 @@ try {
   const username = (await rl.question("Admin username: ")).trim().toLowerCase();
   const password = await rl.question("Admin password: ");
 
-  if (!username || !password) {
-    throw new Error("Username and password are required.");
+  if (!username || password.length < 8) {
+    throw new Error("Username is required and password must be at least 8 characters");
   }
 
-  await mongoose.connect(process.env.MONGODB_URI);
+  const { data: existing, error: lookupError } = await supabase.from("admins").select("id").eq("username", username).maybeSingle();
+  if (lookupError) throw lookupError;
+  if (existing) throw new Error("Admin username already exists");
 
   const passwordHash = await bcrypt.hash(password, 12);
-  const admin = await Admin.findOneAndUpdate(
-    { username },
-    { username, passwordHash, role: "superadmin" },
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  );
+  const { error } = await supabase.from("admins").insert({ username, password_hash: passwordHash, role: "superadmin" });
+  if (error) throw error;
 
-  console.log(`Admin ready: ${admin.username}`);
+  console.log("Superadmin created.");
 } catch (error) {
-  console.error("Could not create admin:", error.message);
+  console.error(error.message);
   process.exitCode = 1;
 } finally {
   rl.close();
-  await mongoose.disconnect();
 }
