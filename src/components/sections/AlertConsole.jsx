@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { AlertTriangle, Bell, Zap, Cpu, RefreshCw } from "lucide-react";
 import SectionHeading from "../ui/SectionHeading";
 import Reveal from "../ui/Reveal";
-import { alerts } from "../../data/misc";
+import { alerts as fallbackAlerts } from "../../data/misc";
+import { api } from "../../lib/api";
 
 const ICONS = {
   DEADLINE: AlertTriangle,
@@ -31,7 +33,7 @@ export default function AlertConsole() {
                     <div className="text-[10px] font-mono text-[#FF3B3B] uppercase tracking-widest mb-0.5">{a.type}</div>
                     <div className="text-sm text-white/80">{a.text}</div>
                   </div>
-                  <div className="text-[10px] font-mono text-white/30 shrink-0">{a.time}</div>
+                  <div className="text-[10px] font-mono text-white/30 shrink-0">{a.time || formatTime(a.createdAt)}</div>
                 </div>
               </Reveal>
             );
