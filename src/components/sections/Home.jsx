@@ -10,13 +10,25 @@ const defaultHome = {
   titleLine1: "CODEOPS",
   titleLine2: "Cyber Operations",
   titleLine3: "Command Centre",
-  description: "A command centre for builders, competitors, and operators. Learn, build, compete, and lead — every mission logged, every agent ranked.",
+  description: "{content.description}",
   joinLabel: "Join Mission",
   eventsLabel: "Explore Events",
   agentsLabel: "Access Database",
 };
 
 export default function Home() {
+  const [content, setContent] = useState(defaultHome);
+
+  useEffect(() => {
+    api.siteSettings.get()
+      .then((settings) => {
+        if (settings?.home) {
+          setContent((current) => ({ ...current, ...settings.home }));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden pt-24 pb-16">
       <div className="cyber-grid absolute inset-0 opacity-20" />
@@ -30,8 +42,8 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="font-display font-black text-4xl md:text-6xl leading-tight text-white uppercase"
           >
-            <span className="text-[#00FF88] text-glow">CODEOPS</span><br />
-            Cyber Operations<br />Command Centre
+            <span className="text-[#00FF88] text-glow">{content.titleLine1}</span><br />
+            {content.titleLine2}<br />{content.titleLine3}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
