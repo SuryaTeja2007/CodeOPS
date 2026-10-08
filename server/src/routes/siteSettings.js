@@ -4,7 +4,17 @@ import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
-const homeDefaults = {\n  titleLine1: "CODEOPS",\n  titleLine2: "Cyber Operations",\n  titleLine3: "Command Centre",\n  description: "A command centre for builders, competitors, and operators. Learn, build, compete, and lead — every mission logged, every agent ranked.",\n  joinLabel: "Join Mission",\n  eventsLabel: "Explore Events",\n  agentsLabel: "Access Database",\n};\n\nconst defaults = {
+const homeDefaults = {
+  titleLine1: "CODEOPS",
+  titleLine2: "Cyber Operations",
+  titleLine3: "Command Centre",
+  description: "A command centre for builders, competitors, and operators. Learn, build, compete, and lead — every mission logged, every agent ranked.",
+  joinLabel: "Join Mission",
+  eventsLabel: "Explore Events",
+  agentsLabel: "Access Database",
+};
+
+const defaults = {
   home: true,
   stats: true,
   missionControl: true,
@@ -24,7 +34,8 @@ router.get("/", async (_req, res) => {
 
 router.put("/", requireAuth, async (req, res) => {
   try {
-    const sections = { ...defaults, ...(req.body?.sections || {}) };\n    const home = { ...homeDefaults, ...(req.body?.home || {}) };
+    const sections = { ...defaults, ...(req.body?.sections || {}) };
+    const home = { ...homeDefaults, ...(req.body?.home || {}) };
     const item = await SiteSettings.findOneAndUpdate(
       {},
       { home, sections },
