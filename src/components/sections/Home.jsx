@@ -1,8 +1,8 @@
-import { Link } from "react-scroll";
+import { useEffect, useState } from "react";\nimport { Link } from "react-scroll";
 import { motion } from "framer-motion";
 import { ShieldCheck, Rocket, Database } from "lucide-react";
 import RadarSweep from "../ui/RadarSweep";
-import TerminalTyper from "../ui/TerminalTyper";
+import TerminalTyper from "../ui/TerminalTyper";\nimport { api } from "../../lib/api";\n\nconst defaultHome = {\n  titleLine1: "CODEOPS",\n  titleLine2: "Cyber Operations",\n  titleLine3: "Command Centre",\n  description: "A command centre for builders, competitors, and operators. Learn, build, compete, and lead — every mission logged, every agent ranked.",\n  joinLabel: "Join Mission",\n  eventsLabel: "Explore Events",\n  agentsLabel: "Access Database",\n};
 
 export default function Home() {
   return (
@@ -39,15 +39,15 @@ export default function Home() {
           >
             <Link to="register" smooth duration={600} offset={-70}
               className="cursor-pointer px-6 py-3 rounded-md font-mono text-xs uppercase tracking-wider bg-[#00FF88] text-black font-bold box-glow-neon hover:brightness-110 transition flex items-center gap-2">
-              <Rocket size={14} /> Join Mission
+              <Rocket size={14} /> {content.joinLabel}
             </Link>
             <Link to="events" smooth duration={600} offset={-70}
               className="cursor-pointer px-6 py-3 rounded-md font-mono text-xs uppercase tracking-wider border border-[#00D9FF] text-[#00D9FF] hover:bg-[#00D9FF]/10 transition flex items-center gap-2">
-              <ShieldCheck size={14} /> Explore Events
+              <ShieldCheck size={14} /> {content.eventsLabel}
             </Link>
             <Link to="agents" smooth duration={600} offset={-70}
               className="cursor-pointer px-6 py-3 rounded-md font-mono text-xs uppercase tracking-wider border border-white/20 text-white/80 hover:border-[#00FF88] hover:text-[#00FF88] transition flex items-center gap-2">
-              <Database size={14} /> Access Database
+              <Database size={14} /> {content.agentsLabel}
             </Link>
           </motion.div>
         </div>
