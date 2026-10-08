@@ -8,7 +8,7 @@ const emptyAgent = { rollNumber:"", name:"", department:"", position:"", languag
 const emptyGallery = { title:"", category:"Events", img:"" };
 const emptyPoster = { title:"", img:"", downloadUrl:"" };
 const emptyAlert = { type:"UPDATE", text:"", priority:"NORMAL" };
-const emptyContact = { facultyCoordinator:"", hod:"", email:"", facebook:"", linkedin:"", instagram:"", discord:"", mapUrl:"" };
+const emptyContact = { facultyCoordinator:"", hod:"", email:"", facebook:"", linkedin:"", instagram:"", discord:"", mapUrl:"" };\nconst emptyHome = { titleLine1:"CODEOPS", titleLine2:"Cyber Operations", titleLine3:"Command Centre", description:"A command centre for builders, competitors, and operators. Learn, build, compete, and lead — every mission logged, every agent ranked.", joinLabel:"Join Mission", eventsLabel:"Explore Events", agentsLabel:"Access Database" };
 
 const TABS = [
   ["events","Events"], ["stats","Stats Dashboard"], ["leaderboard","Leaderboard"], ["agents","Agent Database"], ["alerts","Cyber Alerts"],
@@ -44,7 +44,7 @@ export default function AdminPanel() {
   const [gallery, setGallery] = useState([]);
   const [posters, setPosters] = useState([]);
   const [media, setMedia] = useState([]);
-  const [contact, setContact] = useState(emptyContact);
+  const [contact, setContact] = useState(emptyContact);\n  const [homeContent, setHomeContent] = useState(emptyHome);
   const [sections, setSections] = useState({ home:true, stats:true, missionControl:true, events:true, notifications:true, agents:true, leaderboard:true, gallery:true, posters:true, contact:true });
   const [stats, setStats] = useState({ communityMembers:0, projectsCompleted:0, workshopsConducted:0, hackathonsOrganised:0 });
   const [event, setEvent] = useState(emptyEvent);
@@ -88,7 +88,7 @@ export default function AdminPanel() {
         api.contact.get(), api.siteSettings.get(), api.stats.get()
       ]);
       setEvents(e); setLeaderboard(l); setAgents(a); setGallery(g); setPosters(p); setAlerts(al);
-      setContact(Object.fromEntries(Object.keys(emptyContact).map((key) => [key, c?.[key] || ""])));
+      setContact(Object.fromEntries(Object.keys(emptyContact).map((key) => [key, c?.[key] || ""])));\n      setHomeContent({ ...emptyHome, ...(settings?.home || {}) });
       setSections(settings?.sections || { home:true, stats:true, missionControl:true, events:true, notifications:true, agents:true, leaderboard:true, gallery:true, posters:true, contact:true });
       setStats({ communityMembers: s?.communityMembers || 0, projectsCompleted: s?.projectsCompleted || 0, workshopsConducted: s?.workshopsConducted || 0, hackathonsOrganised: s?.hackathonsOrganised || 0 });
       if (current.role === "superadmin") setAdmins(await api.admins());
@@ -163,7 +163,7 @@ export default function AdminPanel() {
     } catch (e) { fail(e); }
   }
 
-  async function saveContact(e) {
+  async function saveHome(e) {\n    e.preventDefault();\n    try {\n      const saved = await api.siteSettings.update(sections, homeContent);\n      setHomeContent({ ...emptyHome, ...(saved?.home || homeContent) });\n      setSections(saved?.sections || sections);\n      setMessage("Home section updated."); setError("");\n    } catch (e) { fail(e); }\n  }\n\n  async function saveContact(e) {
     e.preventDefault();
     try {
       const saved = await api.contact.update(contact);
@@ -430,7 +430,7 @@ export default function AdminPanel() {
           </section>
         ) : null}
 
-        {tab === "events" ? (
+        {tab === "home" ? <Section title="MANAGE HOME SECTION">\n          <form onSubmit={saveHome} className="grid md:grid-cols-2 gap-3">\n            <div><label className="block text-[10px] text-white/40 mb-1">TITLE LINE 1</label><input className={inputClass} value={homeContent.titleLine1} onChange={(e) => setHomeContent({ ...homeContent, titleLine1:e.target.value })} /></div>\n            <div><label className="block text-[10px] text-white/40 mb-1">TITLE LINE 2</label><input className={inputClass} value={homeContent.titleLine2} onChange={(e) => setHomeContent({ ...homeContent, titleLine2:e.target.value })} /></div>\n            <div><label className="block text-[10px] text-white/40 mb-1">TITLE LINE 3</label><input className={inputClass} value={homeContent.titleLine3} onChange={(e) => setHomeContent({ ...homeContent, titleLine3:e.target.value })} /></div>\n            <div><label className="block text-[10px] text-white/40 mb-1">JOIN BUTTON LABEL</label><input className={inputClass} value={homeContent.joinLabel} onChange={(e) => setHomeContent({ ...homeContent, joinLabel:e.target.value })} /></div>\n            <div><label className="block text-[10px] text-white/40 mb-1">EVENTS BUTTON LABEL</label><input className={inputClass} value={homeContent.eventsLabel} onChange={(e) => setHomeContent({ ...homeContent, eventsLabel:e.target.value })} /></div>\n            <div><label className="block text-[10px] text-white/40 mb-1">DATABASE BUTTON LABEL</label><input className={inputClass} value={homeContent.agentsLabel} onChange={(e) => setHomeContent({ ...homeContent, agentsLabel:e.target.value })} /></div>\n            <div className="md:col-span-2"><label className="block text-[10px] text-white/40 mb-1">DESCRIPTION</label><textarea rows={4} className={inputClass} value={homeContent.description} onChange={(e) => setHomeContent({ ...homeContent, description:e.target.value })} /></div>\n            <button className={buttonClass + " md:col-span-2"} type="submit">Save home section</button>\n          </form>\n        </Section> : null}\n\n        {tab === "events" ? (
           <Section title={editing?.resource === "events" ? "EDIT EVENT" : "CREATE EVENT"}>
             <form onSubmit={saveEvent} className="grid md:grid-cols-2 gap-3">
               <div>
