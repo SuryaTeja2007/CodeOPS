@@ -18,6 +18,19 @@ const inputClass = "w-full bg-black/50 border border-[#00FF88]/20 rounded px-3 p
 const buttonClass = "inline-flex items-center justify-center gap-2 rounded px-4 py-2 bg-[#00FF88] text-black font-bold text-xs uppercase tracking-wider hover:brightness-110";
 const secondaryClass = "inline-flex items-center justify-center gap-2 rounded px-3 py-2 border border-white/15 text-white/70 text-xs uppercase hover:border-[#00FF88] hover:text-[#00FF88]";
 
+function toLocalDateTimeInput(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const offset = date.getTimezoneOffset();
+  return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 16);
+}
+
+function toStoredDateTime(value) {
+  if (!value) return value;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toISOString();
+}
+
 export default function AdminPanel() {
   const [admin, setAdmin] = useState(null);
   const [admins, setAdmins] = useState([]);
@@ -118,7 +131,7 @@ export default function AdminPanel() {
     if (resource === "events") setEvent({
       ...emptyEvent,
       ...Object.fromEntries(Object.keys(emptyEvent).map((key) => [
-        key, key === "deadline" ? (item.deadline ? item.deadline.slice(0,16) : "") : (item[key] ?? emptyEvent[key])
+        key, key === "deadline" ? (item.deadline ? toLocalDateTimeInput(item.deadline) : "") : (item[key] ?? emptyEvent[key])
       ]))
     });
     if (resource === "leaderboard") setLeader({ ...emptyLeaderboard, ...item });
@@ -131,7 +144,8 @@ export default function AdminPanel() {
     e.preventDefault();
     try {
       const isEdit = editing?.resource === "events";
-      const saved = isEdit ? await api.updateEvent(editing.id, event) : await api.addEvent(event);
+      const payload = { ...event, deadline: toStoredDateTime(event.deadline) };
+      const saved = isEdit ? await api.updateEvent(editing.id, payload) : await api.addEvent(payload);
       setEvents((items) => isEdit ? items.map((item) => item._id === editing.id ? saved : item) : [saved, ...items]);
       clearForm(); setMessage(isEdit ? "Event updated." : "Event created."); setError("");
     } catch (e) { fail(e); }
