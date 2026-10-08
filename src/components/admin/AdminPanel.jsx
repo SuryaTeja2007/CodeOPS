@@ -7,6 +7,7 @@ const emptyLeaderboard = { name:"", nickname:"", threatClass:"", division:"", xp
 const emptyAgent = { rollNumber:"", name:"", department:"", position:"", language:"", github:"", linkedin:"", portfolio:"", photo:"" };
 const emptyGallery = { title:"", category:"Events", img:"" };
 const emptyPoster = { title:"", img:"", downloadUrl:"" };
+const emptyAlert = { type:"UPDATE", text:"", priority:"NORMAL" };
 const emptyContact = { facultyCoordinator:"", hod:"", email:"", facebook:"", linkedin:"", instagram:"", discord:"", mapUrl:"" };
 
 const TABS = [
@@ -37,6 +38,7 @@ export default function AdminPanel() {
   const [login, setLogin] = useState({ username:"", password:"" });
   const [tab, setTab] = useState(() => new URLSearchParams(window.location.search).get("tab") || "events");
   const [events, setEvents] = useState([]);
+  const [alerts, setAlerts] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [agents, setAgents] = useState([]);
   const [gallery, setGallery] = useState([]);
@@ -50,6 +52,7 @@ export default function AdminPanel() {
   const [agent, setAgent] = useState(emptyAgent);
   const [galleryItem, setGalleryItem] = useState(emptyGallery);
   const [poster, setPoster] = useState(emptyPoster);
+  const [alert, setAlert] = useState(emptyAlert);
   const [editing, setEditing] = useState(null);
   const [newAdmin, setNewAdmin] = useState({ username:"", password:"" });
   const [upload, setUpload] = useState({ title:"", kind:"image", file:null });
@@ -73,18 +76,18 @@ export default function AdminPanel() {
 
   const clearForm = () => {
     setEditing(null); setEvent(emptyEvent); setLeader(emptyLeaderboard);
-    setAgent(emptyAgent); setGalleryItem(emptyGallery); setPoster(emptyPoster);
+    setAgent(emptyAgent); setGalleryItem(emptyGallery); setPoster(emptyPoster); setAlert(emptyAlert);
   };
 
   async function loadAll() {
     try {
       const { admin: current } = await api.me();
       setAdmin(current);
-      const [e,l,a,g,p,c,settings,s] = await Promise.all([
-        api.events(), api.leaderboard.list(), api.agents.list(), api.gallery.list(), api.posters.list(),
+      const [e,l,a,g,p,al,c,settings,s] = await Promise.all([
+        api.events(), api.leaderboard.list(), api.agents.list(), api.gallery.list(), api.posters.list(), api.alerts.list(),
         api.contact.get(), api.siteSettings.get(), api.stats.get()
       ]);
-      setEvents(e); setLeaderboard(l); setAgents(a); setGallery(g); setPosters(p);
+      setEvents(e); setLeaderboard(l); setAgents(a); setGallery(g); setPosters(p); setAlerts(al);
       setContact(Object.fromEntries(Object.keys(emptyContact).map((key) => [key, c?.[key] || ""])));
       setSections(settings?.sections || { home:true, stats:true, missionControl:true, events:true, notifications:true, agents:true, leaderboard:true, gallery:true, posters:true, contact:true });
       setStats({ communityMembers: s?.communityMembers || 0, projectsCompleted: s?.projectsCompleted || 0, workshopsConducted: s?.workshopsConducted || 0, hackathonsOrganised: s?.hackathonsOrganised || 0 });
@@ -111,7 +114,7 @@ export default function AdminPanel() {
     try {
       const isEdit = editing?.resource === resource;
       const saved = isEdit ? await api[resource].update(editing.id, payload) : await api[resource].add(payload);
-      const setters = { leaderboard:setLeaderboard, agents:setAgents, gallery:setGallery, posters:setPosters };
+      const setters = { leaderboard:setLeaderboard, agents:setAgents, gallery:setGallery, posters:setPosters, alerts:setAlerts };
       const setter = setters[resource];
       if (setter) setter((items) => isEdit ? items.map((item) => item._id === editing.id ? saved : item) : [saved, ...items]);
       setEditing(null); reset(); setMessage(isEdit ? "Updated successfully." : "Created successfully."); setError("");
@@ -138,6 +141,7 @@ export default function AdminPanel() {
     if (resource === "agents") setAgent({ ...emptyAgent, ...item });
     if (resource === "gallery") setGalleryItem({ ...emptyGallery, ...item });
     if (resource === "posters") setPoster({ ...emptyPoster, ...item });
+    if (resource === "alerts") setAlert({ ...emptyAlert, ...item });
   }
 
   async function saveEvent(e) {
@@ -488,6 +492,29 @@ export default function AdminPanel() {
                 <label className="block text-[10px] text-white/40 mb-1">MISSIONS COMPLETED</label>
                 <input type="number" min="0" className={inputClass} placeholder="e.g. 81" value={leader.missions} onChange={(e) => setLeader({ ...leader, missions:Number(e.target.value) })} />
               </div><div className="flex gap-2 md:col-span-3"><button className={buttonClass} type="submit">{editing?.resource === "leaderboard" ? "Save" : "Add"} leaderboard entry</button>{editing?.resource === "leaderboard" ? <button type="button" className={secondaryClass} onClick={clearForm}>Cancel</button> : null}</div></form><List items={leaderboard} render={(item) => <span><span className="text-[#00D9FF]">{item.name}</span><span className="text-white/40 ml-3">{item.xp} XP · {item.division}</span></span>} onEdit={(item) => edit("leaderboard", item)} onDelete={(id) => remove("leaderboard", id, setLeaderboard)} /></Section> : null}
+
+        {tab === "alerts" ? <Section title="MANAGE CYBER ALERT CONSOLE">
+          <form onSubmit={(e) => { e.preventDefault(); if (!alert.text.trim()) { setError("Alert message is required."); return; } save("alerts", alert, () => setAlert(emptyAlert)); }} className="grid md:grid-cols-3 gap-3">
+            <select className={inputClass} value={alert.type} onChange={(e) => setAlert({ ...alert, type:e.target.value })}>
+              <option value="DEADLINE">DEADLINE</option>
+              <option value="WORKSHOP">WORKSHOP</option>
+              <option value="HACKATHON">HACKATHON</option>
+              <option value="UPDATE">UPDATE</option>
+              <option value="SYSTEM">SYSTEM</option>
+            </select>
+            <select className={inputClass} value={alert.priority} onChange={(e) => setAlert({ ...alert, priority:e.target.value })}>
+              <option value="NORMAL">NORMAL</option>
+              <option value="HIGH">HIGH</option>
+              <option value="CRITICAL">CRITICAL</option>
+            </select>
+            <input required className={inputClass + " md:col-span-3"} placeholder="ALERT MESSAGE" value={alert.text} onChange={(e) => setAlert({ ...alert, text:e.target.value })} />
+            <div className="flex gap-2 md:col-span-3">
+              <button className={buttonClass} type="submit">{editing?.resource === "alerts" ? "Save alert" : "Add alert"}</button>
+              {editing?.resource === "alerts" ? <button type="button" className={secondaryClass} onClick={clearForm}>Cancel</button> : null}
+            </div>
+          </form>
+          <List items={alerts} render={(item) => <span><span className="text-[#FF3B3B] mr-3">{item.type}</span>{item.text}<span className="ml-3 text-white/30">[{item.priority || "NORMAL"}]</span></span>} onEdit={(item) => edit("alerts", item)} onDelete={(id) => remove("alerts", id, setAlerts)} />
+        </Section> : null}
 
         {tab === "agents" ? <Section title="MANAGE AGENT DATABASE">
             <div className="flex flex-wrap gap-2 mb-5">
