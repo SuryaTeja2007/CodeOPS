@@ -347,6 +347,7 @@ router.delete("/media/:id", requireAuth, async (req, res) => {
 
   const { error } = await supabase.from("media").delete().eq("id", req.params.id);
   if (error) return res.status(400).json({ message: error.message });
+  await deleteFromStorage(media.url);
   if (media.url.startsWith("/uploads/")) {
     fs.rm(path.join(uploadDir, path.basename(media.url)), { force: true }, () => {});
   }
@@ -354,11 +355,19 @@ router.delete("/media/:id", requireAuth, async (req, res) => {
 });
 
 router.get("/stats", async (_req, res) => {
-  const [{ data: stats }, { count: totalAgents }, { data: leaderboard }] = await Promise.all([
+  const [statsResult, agentsResult, leaderboardResult] = await Promise.all([
     supabase.from("stats").select("*").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("agents").select("id", { count: "exact", head: true }),
     supabase.from("leaderboard").select("xp"),
   ]);
+  if (statsResult.error || agentsResult.error || leaderboardResult.error) {
+    return res.status(500).json({
+      message: statsResult.error?.message || agentsResult.error?.message || leaderboardResult.error?.message || "Failed to load stats",
+    });
+  }
+  const stats = statsResult.data;
+  const totalAgents = agentsResult.count;
+  const leaderboard = leaderboardResult.data;
   const totalXpEarned = (leaderboard || []).reduce((sum, item) => sum + Number(item.xp || 0), 0);
 
   res.json({
