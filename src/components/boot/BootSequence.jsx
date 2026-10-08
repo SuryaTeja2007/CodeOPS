@@ -19,9 +19,27 @@ export default function BootSequence({ onAudioChoice, onDone }) {
     return () => clearTimeout(blankTimer);
   }, [phase, onDone]);
 
+  useEffect(() => {
+    if (phase !== "video") return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onDone();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [phase, onDone]);
+
   const chooseAudio = (enabled) => {
     onAudioChoice(enabled);
     setPhase("video");
+  };
+
+  const skipIntro = () => {
+    onDone();
   };
 
   return (
@@ -67,15 +85,29 @@ export default function BootSequence({ onAudioChoice, onDone }) {
             </div>
           </div>
         ) : phase === "video" ? (
-          <video
-            className="h-full w-full object-cover"
-            src={introVideo}
-            autoPlay
-            muted
-            playsInline
-            onEnded={() => setPhase("blank")}
-            aria-label="Code_OPS introduction"
-          />
+          <div className="relative h-full w-full">
+            <video
+              className="h-full w-full object-cover"
+              src={introVideo}
+              autoPlay
+              muted
+              playsInline
+              onEnded={() => setPhase("blank")}
+              aria-label="Code_OPS introduction"
+            />
+            <div className="absolute bottom-5 left-5 z-10 flex items-center gap-3 font-mono">
+              <button
+                type="button"
+                onClick={skipIntro}
+                className="border border-[#00FF88]/60 bg-[#050505]/80 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#00FF88] backdrop-blur-sm transition hover:bg-[#00FF88] hover:text-[#050505]"
+              >
+                Skip intro
+              </button>
+              <span className="text-[10px] uppercase tracking-wider text-white/40">
+                Press Esc to skip
+              </span>
+            </div>
+          </div>
         ) : phase === "blank" ? (
           <div className="h-full w-full bg-[#050505]" />
         ) : null}
