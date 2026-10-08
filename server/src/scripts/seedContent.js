@@ -8,6 +8,7 @@ import Poster from "../models/Poster.js";
 import Contact from "../models/Contact.js";
 import Stats from "../models/Stats.js";
 import Media from "../models/Media.js";
+import Alert from "../models/Alert.js";
 
 dotenv.config();
 
@@ -48,6 +49,14 @@ const posters = [
   { title:"Inauguration", img:"https://placehold.co/500x650/050505/00FF88?text=Inauguration+Poster", downloadUrl:"" }
 ];
 
+
+const alerts = [
+  { type:"DEADLINE", text:"Registrations for MSN-014 close in 14 days.", priority:"NORMAL" },
+  { type:"WORKSHOP", text:"New workshop scheduled: Intro to Web Exploitation.", priority:"NORMAL" },
+  { type:"HACKATHON", text:"Ghost Protocol venue confirmed — CSE Seminar Hall.", priority:"HIGH" },
+  { type:"UPDATE", text:"Leaderboard recalculated after CP Dojo round 3.", priority:"NORMAL" },
+  { type:"SYSTEM", text:"Agent database sync complete. 8 active profiles.", priority:"NORMAL" },
+];
 const defaultEvent = {
   code:"CO-001", title:"Inauguration Event",
   poster:"https://placehold.co/500x650/050505/00FF88?text=CO-001",
@@ -58,11 +67,15 @@ const defaultEvent = {
 export async function seedDefaultContent() {
   const marker = await Event.findOne({ code:defaultEvent.code }).select("_id").lean();
   if (marker) {
+    for (const item of alerts) {
+      await Alert.findOneAndUpdate({ type:item.type, text:item.text }, item, { upsert:true, new:true, setDefaultsOnInsert:true });
+    }
     console.log("Default content already initialized.");
     return;
   }
 
   await Event.findOneAndUpdate({ code:defaultEvent.code }, defaultEvent, { upsert:true, new:true, setDefaultsOnInsert:true });
+  for (const item of alerts) await Alert.findOneAndUpdate({ type:item.type, text:item.text },item,{upsert:true,new:true,setDefaultsOnInsert:true});
   for (const item of leaderboard) await Leaderboard.findOneAndUpdate({name:item.name,nickname:item.nickname},item,{upsert:true,new:true,setDefaultsOnInsert:true});
   for (const item of agents) await Agent.findOneAndUpdate({rollNumber:item.rollNumber},item,{upsert:true,new:true,setDefaultsOnInsert:true});
   for (const [title,category,img] of gallery) await Gallery.findOneAndUpdate({title,category},{title,category,img},{upsert:true,new:true,setDefaultsOnInsert:true});
