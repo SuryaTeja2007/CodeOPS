@@ -67,6 +67,7 @@ export const api = {
     importCsv: (agents) => request("/agents/import", { method:"POST", body:JSON.stringify({ agents }) }),
     reorder: (order) => request("/agents/reorder", { method:"PUT", body:JSON.stringify({ order }) }),
   },
+  alerts: crud("alert"),
   gallery: crud("gallery"),
   posters: crud("poster"),
   contact: {
