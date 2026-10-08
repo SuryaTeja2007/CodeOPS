@@ -61,7 +61,7 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mt-8 flex flex-wrap gap-4"
           >
-            <Link to="register" smooth duration={600} offset={-70}
+            <Link to="events" smooth duration={600} offset={-70}
               className="cursor-pointer px-6 py-3 rounded-md font-mono text-xs uppercase tracking-wider bg-[#00FF88] text-black font-bold box-glow-neon hover:brightness-110 transition flex items-center gap-2">
               <Rocket size={14} /> {content.joinLabel}
             </Link>
