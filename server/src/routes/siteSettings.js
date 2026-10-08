@@ -1,5 +1,5 @@
 import { Router } from "express";
-import SiteSettings from "../models/SiteSettings.js";
+import supabase, { toCamel } from "../config/supabase.js";
 import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
@@ -28,20 +28,25 @@ const defaults = {
 };
 
 router.get("/", async (_req, res) => {
-  const item = await SiteSettings.findOne().lean();
-  res.json({ home: { ...homeDefaults, ...(item?.home || {}) }, sections: { ...defaults, ...(item?.sections || {}) } });
+  const { data: item, error } = await supabase.from("site_settings").select("*").limit(1).maybeSingle();
+  if (error) return res.status(500).json({ message: error.message });
+  res.json({
+    home: { ...homeDefaults, ...(item?.home || {}) },
+    sections: { ...defaults, ...(item?.sections || {}) },
+  });
 });
 
 router.put("/", requireAuth, async (req, res) => {
   try {
-    const sections = { ...defaults, ...(req.body?.sections || {}) };
     const home = { ...homeDefaults, ...(req.body?.home || {}) };
-    const item = await SiteSettings.findOneAndUpdate(
-      {},
-      { home, sections },
-      { new: true, upsert: true, runValidators: true }
-    ).lean();
-    res.json(item);
+    const sections = { ...defaults, ...(req.body?.sections || {}) };
+    const { data: existing } = await supabase.from("site_settings").select("id").limit(1).maybeSingle();
+    const query = existing
+      ? supabase.from("site_settings").update({ home, sections }).eq("id", existing.id)
+      : supabase.from("site_settings").insert({ home, sections });
+    const { data, error } = await query.select("*").single();
+    if (error) throw error;
+    res.json({ ...toCamel(data), home, sections });
   } catch (e) {
     res.status(400).json({ message: e.message });
   }
