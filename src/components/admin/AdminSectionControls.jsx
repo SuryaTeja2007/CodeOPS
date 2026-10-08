@@ -3,6 +3,7 @@ import { Eye, EyeOff, ExternalLink, Pencil, X } from "lucide-react";
 import { api } from "../../lib/api";
 
 const EDITORS = {
+  home: "home",
   events: "events",
   agents: "agents",
   leaderboard: "leaderboard",
