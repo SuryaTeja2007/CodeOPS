@@ -1,8 +1,20 @@
-import { useEffect, useState } from "react";\nimport { Link } from "react-scroll";
+import { useEffect, useState } from "react";
+import { Link } from "react-scroll";
 import { motion } from "framer-motion";
 import { ShieldCheck, Rocket, Database } from "lucide-react";
 import RadarSweep from "../ui/RadarSweep";
-import TerminalTyper from "../ui/TerminalTyper";\nimport { api } from "../../lib/api";\n\nconst defaultHome = {\n  titleLine1: "CODEOPS",\n  titleLine2: "Cyber Operations",\n  titleLine3: "Command Centre",\n  description: "A command centre for builders, competitors, and operators. Learn, build, compete, and lead — every mission logged, every agent ranked.",\n  joinLabel: "Join Mission",\n  eventsLabel: "Explore Events",\n  agentsLabel: "Access Database",\n};
+import TerminalTyper from "../ui/TerminalTyper";
+import { api } from "../../lib/api";
+
+const defaultHome = {
+  titleLine1: "CODEOPS",
+  titleLine2: "Cyber Operations",
+  titleLine3: "Command Centre",
+  description: "A command centre for builders, competitors, and operators. Learn, build, compete, and lead — every mission logged, every agent ranked.",
+  joinLabel: "Join Mission",
+  eventsLabel: "Explore Events",
+  agentsLabel: "Access Database",
+};
 
 export default function Home() {
   return (
