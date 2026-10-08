@@ -11,7 +11,7 @@ const emptyAlert = { type:"UPDATE", text:"", priority:"NORMAL" };
 const emptyContact = { facultyCoordinator:"", hod:"", email:"", facebook:"", linkedin:"", instagram:"", discord:"", mapUrl:"" };
 
 const TABS = [
-  ["events","Events"], ["stats","Stats Dashboard"], ["leaderboard","Leaderboard"], ["agents","Agent Database"],
+  ["events","Events"], ["stats","Stats Dashboard"], ["leaderboard","Leaderboard"], ["agents","Agent Database"], ["alerts","Cyber Alerts"],
   ["gallery","Gallery"], ["posters","Posters"], ["contact","Contact"], ["media","Media Library"], ["visibility","Section Visibility"]
 ];
 
