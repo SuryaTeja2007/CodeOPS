@@ -87,7 +87,7 @@ export const api = {
   },
   siteSettings: {
     get: () => request("/site-settings"),
-    update: (sections) => request("/site-settings", { method:"PUT", body:JSON.stringify({ sections }) }),
+    update: (sections, home) => request("/site-settings", { method:"PUT", body:JSON.stringify({ sections, home }) }),
   },
   stats: {
     get: () => request("/stats"),
