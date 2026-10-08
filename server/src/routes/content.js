@@ -1,5 +1,5 @@
 import { Router } from "express";
-import supabase, { toCamel, toCamelRows } from "../config/supabase.js";
+import supabase, { toCamel, toCamelRows, toSnake } from "../config/supabase.js";
 import { requireAuth } from "../middleware/auth.js";
 import multer from "multer";
 import path from "node:path";
@@ -69,7 +69,7 @@ function crud(table, sortColumn = "created_at", ascending = false) {
 
   router.post(`/${table === "alerts" ? "alert" : table}`, requireAuth, async (req, res) => {
     try {
-      const { data, error } = await supabase.from(table).insert(req.body).select("*").single();
+      const { data, error } = await supabase.from(table).insert(toSnake(req.body)).select("*").single();
       if (error) throw error;
       res.status(201).json(toCamel(data));
     } catch (e) {
@@ -79,7 +79,7 @@ function crud(table, sortColumn = "created_at", ascending = false) {
 
   router.put(`/${table === "alerts" ? "alert" : table}/:id`, requireAuth, async (req, res) => {
     try {
-      const { data, error } = await supabase.from(table).update(req.body).eq("id", req.params.id).select("*").maybeSingle();
+      const { data, error } = await supabase.from(table).update(toSnake(req.body)).eq("id", req.params.id).select("*").maybeSingle();
       if (error) throw error;
       if (!data) return res.status(404).json({ message: "Not found" });
       res.json(toCamel(data));
